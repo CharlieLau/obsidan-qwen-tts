@@ -12,6 +12,7 @@ export interface EngineConfig {
   secretId?: string;
   secretKey?: string;
   speechRate?: number;
+  voice?: string; // For Qwen TTS voice selection
 }
 
 export interface ITTSEngine {

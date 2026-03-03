@@ -16,6 +16,7 @@ export interface TTSSettings {
   };
   qwen: {
     apiKey: string;
+    voice: string;
   };
   openai: {
     apiKey: string;
@@ -34,7 +35,8 @@ export const DEFAULT_SETTINGS: TTSSettings = {
     secretKey: ''
   },
   qwen: {
-    apiKey: ''
+    apiKey: '',
+    voice: 'Cherry'
   },
   openai: {
     apiKey: ''
@@ -147,6 +149,24 @@ export class TTSSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.qwen.apiKey)
           .onChange(async (value) => {
             this.plugin.settings.qwen.apiKey = value;
+            await this.plugin.saveSettings();
+          }));
+
+      new Setting(containerEl)
+        .setName('音色选择')
+        .setDesc('选择语音合成的音色')
+        .addDropdown(dropdown => dropdown
+          .addOption('Cherry', 'Cherry - 女声，温柔甜美')
+          .addOption('Emily', 'Emily - 女声，英文')
+          .addOption('Lily', 'Lily - 女声，活泼可爱')
+          .addOption('Luna', 'Luna - 女声，知性优雅')
+          .addOption('Stella', 'Stella - 女声，自然亲切')
+          .addOption('Harry', 'Harry - 男声，英文')
+          .addOption('William', 'William - 男声，沉稳成熟')
+          .addOption('Sam', 'Sam - 男声，年轻活力')
+          .setValue(this.plugin.settings.qwen.voice)
+          .onChange(async (value) => {
+            this.plugin.settings.qwen.voice = value;
             await this.plugin.saveSettings();
           }));
     } else if (engine === 'openai') {

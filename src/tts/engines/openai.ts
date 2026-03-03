@@ -1,12 +1,12 @@
-// src/tts/engines/qwen.ts
+// src/tts/engines/openai.ts
 
+import OpenAI from 'openai';
 import { BaseTTSEngine, EngineConfig, Language } from './base';
 
-export class QwenEngine extends BaseTTSEngine {
-  private apiKey: string | null = null;
+export class OpenAIEngine extends BaseTTSEngine {
+  private client: OpenAI | null = null;
   private audio: HTMLAudioElement | null = null;
   private audioUrl: string | null = null;
-  private readonly apiEndpoint = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation';
 
   constructor(config: EngineConfig) {
     super(config);
@@ -16,15 +16,18 @@ export class QwenEngine extends BaseTTSEngine {
     this.config = config;
 
     if (!config.apiKey) {
-      throw new Error('Qwen API key is required');
+      throw new Error('OpenAI API key is required');
     }
 
-    this.apiKey = config.apiKey;
+    this.client = new OpenAI({
+      apiKey: config.apiKey,
+      dangerouslyAllowBrowser: true
+    });
   }
 
   async speak(text: string, language: Language): Promise<void> {
-    if (!this.apiKey) {
-      throw new Error('Qwen API key not initialized');
+    if (!this.client) {
+      throw new Error('OpenAI client not initialized');
     }
 
     return new Promise(async (resolve, reject) => {
@@ -32,34 +35,16 @@ export class QwenEngine extends BaseTTSEngine {
         // Clean up previous audio if exists
         this.cleanup();
 
-        // Select voice based on language and config
-        const voice = this.config.voice || (language === 'zh-CN' ? 'Cherry' : 'Emily');
-        const languageType = language === 'zh-CN' ? 'Chinese' : 'English';
+        // Select voice based on language
+        const voice = language === 'zh-CN' ? 'nova' : 'alloy';
 
-        // Prepare request body for qwen3-tts-instruct-flash model
-        const requestBody = {
-          model: 'qwen3-tts-instruct-flash',
-          input: {
-            text: text,
-            voice: voice,
-            language_type: languageType
-          }
-        };
-
-        // Call Qwen TTS API
-        const response = await fetch(this.apiEndpoint, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(requestBody)
+        // Call OpenAI TTS API
+        const response = await this.client.audio.speech.create({
+          model: 'tts-1',
+          voice: voice,
+          input: text,
+          speed: this.config.speechRate || 1.0
         });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Qwen TTS API error: ${response.status} - ${errorText}`);
-        }
 
         // Convert response to blob
         const arrayBuffer = await response.arrayBuffer();

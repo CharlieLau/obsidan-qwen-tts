@@ -117,7 +117,8 @@ export default class TTSPlugin extends Plugin {
       };
     } else if (engine === 'qwen') {
       return {
-        apiKey: this.settings.qwen.apiKey
+        apiKey: this.settings.qwen.apiKey,
+        voice: this.settings.qwen.voice
       };
     } else if (engine === 'openai') {
       return {
