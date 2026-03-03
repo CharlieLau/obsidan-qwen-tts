@@ -8,8 +8,9 @@
   background: var(--background-primary);
   border: none;
   border-radius: 0;
-  margin: 8px 0;
+  margin: 8px auto;
   max-width: 100%;
+  width: fit-content;
 }
 
 /* Main Controls Row - Everything in One Line */
