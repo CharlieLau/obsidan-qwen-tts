@@ -125,6 +125,7 @@ export default class TTSPlugin extends Plugin {
     } else if (engine === 'qwen') {
       return {
         apiKey: this.settings.qwen.apiKey,
+        model: this.settings.qwen.model,
         voice: this.settings.qwen.voice
       };
     } else if (engine === 'openai') {

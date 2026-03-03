@@ -16,6 +16,7 @@ export interface TTSSettings {
   };
   qwen: {
     apiKey: string;
+    model: string;
     voice: string;
     customVoice: string;
   };
@@ -37,6 +38,7 @@ export const DEFAULT_SETTINGS: TTSSettings = {
   },
   qwen: {
     apiKey: '',
+    model: 'qwen3-tts-instruct-flash',
     voice: 'Cherry',
     customVoice: ''
   },
@@ -151,6 +153,17 @@ export class TTSSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.qwen.apiKey)
           .onChange(async (value) => {
             this.plugin.settings.qwen.apiKey = value;
+            await this.plugin.saveSettings();
+          }));
+
+      new Setting(containerEl)
+        .setName('模型')
+        .setDesc('选择 TTS 模型（默认：qwen3-tts-instruct-flash）')
+        .addText(text => text
+          .setPlaceholder('输入模型名称')
+          .setValue(this.plugin.settings.qwen.model)
+          .onChange(async (value) => {
+            this.plugin.settings.qwen.model = value;
             await this.plugin.saveSettings();
           }));
 

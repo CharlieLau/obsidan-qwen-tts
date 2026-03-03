@@ -5,6 +5,7 @@ import { BaseTTSEngine, EngineConfig, Language } from './base';
 
 export class QwenEngine extends BaseTTSEngine {
   private apiKey: string | null = null;
+  private model: string = 'qwen3-tts-instruct-flash';
   private audio: HTMLAudioElement | null = null;
   private audioUrl: string | null = null;
   private readonly apiEndpoint = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation';
@@ -21,6 +22,7 @@ export class QwenEngine extends BaseTTSEngine {
     }
 
     this.apiKey = config.apiKey;
+    this.model = config.model || 'qwen3-tts-instruct-flash';
   }
 
   async speak(text: string, language: Language): Promise<void> {
@@ -44,9 +46,9 @@ export class QwenEngine extends BaseTTSEngine {
 
         console.log('Using voice:', voice, 'for language:', languageType);
 
-        // Prepare request body for qwen3-tts-instruct-flash model
+        // Prepare request body for configured model
         const requestBody = {
-          model: 'qwen3-tts-instruct-flash',
+          model: this.model,
           input: {
             text: text,
             voice: voice,
@@ -84,7 +86,7 @@ export class QwenEngine extends BaseTTSEngine {
         this.audioUrl = result.output.audio.url;
 
         // Create and setup audio element
-        this.audio = new Audio(this.audioUrl);
+        this.audio = new Audio(this.audioUrl!);
 
         this.audio.onloadeddata = () => {
           this.status = 'playing';

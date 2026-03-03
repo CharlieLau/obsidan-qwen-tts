@@ -39,7 +39,7 @@ export class OpenAIEngine extends BaseTTSEngine {
         const voice = language === 'zh-CN' ? 'nova' : 'alloy';
 
         // Call OpenAI TTS API
-        const response = await this.client.audio.speech.create({
+        const response = await this.client!.audio.speech.create({
           model: 'tts-1',
           voice: voice,
           input: text,
