@@ -95,4 +95,19 @@ export class TTSEngineManager {
   getStatus(): EngineStatus {
     return this.currentEngine.getStatus();
   }
+
+  /**
+   * 使用指定音色播放文本（用于对话模式）
+   */
+  async speakWithVoice(text: string, language: Language, voice: string): Promise<void> {
+    // 临时切换音色
+    const originalVoice = this.config.voice;
+    this.config.voice = voice;
+
+    await this.currentEngine.initialize(this.config);
+    await this.currentEngine.speak(text, language);
+
+    // 恢复原音色
+    this.config.voice = originalVoice;
+  }
 }

@@ -45,21 +45,12 @@ export class MultiVoicePlayer {
 
     const line = this.dialogueLines[this.currentIndex];
 
-    // 切换音色
-    await this.engineManager.initialize({
-      type: 'qwen',
-      voice: line.voice,
-      apiKey: (this.engineManager as any).config?.apiKey,
-      model: (this.engineManager as any).config?.model,
-      speechRate: (this.engineManager as any).config?.speechRate
-    });
-
     // 检测语言
     const language = this.detectLanguage(line.content);
 
-    // 播放当前句
+    // 播放当前句（使用指定音色）
     try {
-      await this.engineManager.currentEngine.speak(line.content, language);
+      await this.engineManager.speakWithVoice(line.content, language, line.voice);
 
       // 播放完成，继续下一句
       this.currentIndex++;

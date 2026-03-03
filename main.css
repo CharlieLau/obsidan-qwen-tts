@@ -1,5 +1,4 @@
-/* TTS Control Bar - Compact Single Line */
-
+/* src/ui/styles.css */
 .tts-control-bar {
   display: flex;
   flex-direction: column;
@@ -12,16 +11,12 @@
   max-width: 100%;
   width: fit-content;
 }
-
-/* Main Controls Row - Everything in One Line */
 .tts-controls-main {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: nowrap;
 }
-
-/* Play/Pause/Stop Buttons - Subtle and Modern */
 .tts-control-bar button {
   display: flex;
   align-items: center;
@@ -38,7 +33,6 @@
   transition: all 0.2s ease;
   flex-shrink: 0;
 }
-
 .tts-control-bar button:hover:not(:disabled) {
   background: var(--background-modifier-hover);
   border-color: var(--interactive-accent);
@@ -46,19 +40,15 @@
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
-
 .tts-control-bar button:active:not(:disabled) {
   transform: translateY(0);
   box-shadow: none;
 }
-
 .tts-control-bar button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
   border-color: var(--background-modifier-border);
 }
-
-/* Progress Bar Container - Moderate Width */
 .tts-progress-container {
   display: flex;
   align-items: center;
@@ -66,7 +56,6 @@
   flex: 0 1 300px;
   min-width: 200px;
 }
-
 .tts-progress-bar {
   flex: 1;
   height: 4px;
@@ -77,18 +66,15 @@
   position: relative;
   transition: height 0.2s ease;
 }
-
 .tts-progress-bar:hover {
   height: 6px;
 }
-
 .tts-progress-fill {
   height: 100%;
   background: var(--interactive-accent);
   border-radius: 2px;
   transition: width 0.1s linear;
 }
-
 .tts-progress-time {
   font-size: 11px;
   color: var(--text-muted);
@@ -97,21 +83,17 @@
   text-align: right;
   flex-shrink: 0;
 }
-
-/* Voice Selector - Inline */
 .tts-voice-selector {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
 }
-
 .tts-voice-label {
   font-size: 12px;
   color: var(--text-muted);
   flex-shrink: 0;
 }
-
 .tts-voice-select {
   padding: 4px 8px;
   background: var(--background-secondary);
@@ -123,17 +105,13 @@
   transition: all 0.2s ease;
   max-width: 140px;
 }
-
 .tts-voice-select:hover {
   background: var(--background-modifier-hover);
 }
-
 .tts-voice-select:focus {
   outline: none;
   background: var(--background-modifier-hover);
 }
-
-/* Custom Voice Toggle - Small */
 .tts-custom-voice-toggle {
   width: 28px;
   height: 28px;
@@ -150,18 +128,14 @@
   font-size: 12px;
   flex-shrink: 0;
 }
-
 .tts-custom-voice-toggle:hover {
   background: var(--background-modifier-hover);
   color: var(--text-normal);
 }
-
 .tts-custom-voice-toggle.active {
   background: var(--interactive-accent);
   color: var(--text-on-accent);
 }
-
-/* Status Text - Hidden by default */
 .tts-status-text {
   display: none;
   font-size: 11px;
@@ -172,17 +146,12 @@
   margin-left: auto;
   flex-shrink: 0;
 }
-
 .tts-status-text.visible {
   display: block;
 }
-
-/* Settings Row - Hidden by default, shown as second row */
 .tts-settings-row {
   display: none;
 }
-
-/* Custom Voice Input Container */
 .tts-custom-voice-container {
   display: none;
   flex-direction: column;
@@ -192,11 +161,9 @@
   border-radius: 6px;
   margin-top: 4px;
 }
-
 .tts-custom-voice-container.visible {
   display: flex;
 }
-
 .tts-custom-voice-input {
   padding: 6px 10px;
   background: var(--background-primary);
@@ -206,43 +173,33 @@
   font-size: 12px;
   transition: all 0.2s ease;
 }
-
 .tts-custom-voice-input:focus {
   outline: none;
   background: var(--background-modifier-hover);
 }
-
 .tts-custom-voice-input::placeholder {
   color: var(--text-faint);
 }
-
 .tts-custom-voice-hint {
   font-size: 10px;
   color: var(--text-muted);
   line-height: 1.4;
 }
-
-/* Responsive - Stack on small screens */
 @media (max-width: 768px) {
   .tts-control-bar {
     padding: 10px 12px;
   }
-
   .tts-controls-main {
     gap: 8px;
   }
-
   .tts-progress-container {
     flex: 1 1 auto;
     min-width: 150px;
   }
-
   .tts-voice-select {
     max-width: 120px;
   }
 }
-
-/* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   .tts-control-bar button,
   .tts-progress-bar,
@@ -252,27 +209,21 @@
   .tts-custom-voice-input {
     transition: none;
   }
-
   .tts-control-bar button:hover:not(:disabled) {
     transform: none;
   }
 }
-
-/* 对话进度 Modal */
 .dialogue-progress-modal {
   padding: 20px;
   min-width: 400px;
 }
-
 .dialogue-progress-modal h2 {
   margin-top: 0;
   text-align: center;
 }
-
 .progress-container {
   margin: 20px 0;
 }
-
 .progress-track {
   width: 100%;
   height: 8px;
@@ -281,49 +232,40 @@
   overflow: hidden;
   position: relative;
 }
-
 .progress-fill {
   height: 100%;
   background: var(--interactive-accent);
   border-radius: 4px;
   transition: width 0.3s ease;
 }
-
 .progress-percentage {
   text-align: center;
   margin-top: 10px;
   font-weight: bold;
   color: var(--text-normal);
 }
-
 .progress-message {
   text-align: center;
   margin-top: 10px;
   color: var(--text-muted);
   font-size: 14px;
 }
-
-/* 对话选项 Modal */
 .dialogue-options-modal {
   padding: 20px;
   min-width: 400px;
 }
-
 .dialogue-options-modal h2 {
   margin-top: 0;
 }
-
 .dialogue-options-modal p {
   margin: 15px 0 20px 0;
   color: var(--text-muted);
 }
-
 .dialogue-options-buttons {
   display: flex;
   gap: 10px;
   justify-content: center;
 }
-
 .dialogue-options-buttons button {
   padding: 8px 16px;
   border-radius: 6px;

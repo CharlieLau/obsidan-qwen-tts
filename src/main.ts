@@ -4,12 +4,20 @@ import { Plugin, MarkdownView } from 'obsidian';
 import { TTSSettings, DEFAULT_SETTINGS, TTSSettingTab } from './settings';
 import { TTSEngineManager } from './tts/engine-manager';
 import { TTSController } from './ui/controller';
+import { DialogueGenerator } from './dialogue/dialogue-generator';
+import { DialogueParser } from './dialogue/dialogue-parser';
+import { DialogueFileManager } from './dialogue/dialogue-file-manager';
+import { MultiVoicePlayer } from './dialogue/multi-voice-player';
 import './ui/styles.css';
 
 export default class TTSPlugin extends Plugin {
   settings: TTSSettings;
   engineManager: TTSEngineManager;
   controller: TTSController;
+  dialogueGenerator: DialogueGenerator;
+  dialogueParser: DialogueParser;
+  dialogueFileManager: DialogueFileManager;
+  multiVoicePlayer: MultiVoicePlayer;
 
   async onload() {
     console.log('Loading TTS Plugin');
@@ -38,6 +46,12 @@ export default class TTSPlugin extends Plugin {
       onProgress: (current, total) => this.controller.updateProgress(current, total),
       ...this.getEngineConfig()
     });
+
+    // 初始化对话模块
+    this.dialogueGenerator = new DialogueGenerator(this.settings.qwen.apiKey);
+    this.dialogueParser = new DialogueParser();
+    this.dialogueFileManager = new DialogueFileManager(this.app);
+    this.multiVoicePlayer = new MultiVoicePlayer(this.engineManager);
 
     // 注册设置面板
     this.addSettingTab(new TTSSettingTab(this.app, this));
