@@ -1,0 +1,38 @@
+/* src/ui/styles.css */
+
+.tts-control-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--background-secondary);
+  border-radius: 6px;
+  margin: 8px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tts-control-bar button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.tts-control-bar button:hover {
+  background-color: var(--interactive-accent-hover);
+}
+
+.tts-control-bar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tts-status-text {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-muted);
+}
