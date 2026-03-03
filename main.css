@@ -24,25 +24,30 @@
   width: 32px;
   height: 32px;
   padding: 0;
-  border: none;
+  border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
+  background: var(--background-secondary);
+  color: var(--text-normal);
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s ease;
   flex-shrink: 0;
 }
 .tts-control-bar button:hover:not(:disabled) {
-  background: var(--interactive-accent-hover);
-  transform: scale(1.05);
+  background: var(--background-modifier-hover);
+  border-color: var(--interactive-accent);
+  color: var(--interactive-accent);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .tts-control-bar button:active:not(:disabled) {
-  transform: scale(0.95);
+  transform: translateY(0);
+  box-shadow: none;
 }
 .tts-control-bar button:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+  border-color: var(--background-modifier-border);
 }
 .tts-progress-container {
   display: flex;
