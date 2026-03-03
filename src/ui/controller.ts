@@ -93,13 +93,8 @@ export class TTSController {
 
     // 将进度条添加到主控制行
     mainControls.appendChild(progressContainer);
-    mainControls.appendChild(this.statusText);
 
-    // 创建设置行
-    const settingsRow = document.createElement('div');
-    settingsRow.addClass('tts-settings-row');
-
-    // 创建音色选择器
+    // 创建音色选择器（放在主控制行）
     const voiceSelector = document.createElement('div');
     voiceSelector.addClass('tts-voice-selector');
 
@@ -151,8 +146,10 @@ export class TTSController {
     this.customVoiceToggle.title = '自定义音色';
     this.customVoiceToggle.onclick = () => this.toggleCustomVoice();
 
-    settingsRow.appendChild(voiceSelector);
-    settingsRow.appendChild(this.customVoiceToggle);
+    // 添加音色选择器到主控制行
+    mainControls.appendChild(voiceSelector);
+    mainControls.appendChild(this.customVoiceToggle);
+    mainControls.appendChild(this.statusText);
 
     // 创建自定义音色输入容器
     this.customVoiceContainer = document.createElement('div');
@@ -177,7 +174,6 @@ export class TTSController {
 
     // 组装控制条
     this.controlBar.appendChild(mainControls);
-    this.controlBar.appendChild(settingsRow);
     this.controlBar.appendChild(this.customVoiceContainer);
 
     // 将控制条插入到编辑器容器
