@@ -1,5 +1,6 @@
 // src/tts/engines/qwen.ts
 
+import { requestUrl } from 'obsidian';
 import { BaseTTSEngine, EngineConfig, Language } from './base';
 
 export class QwenEngine extends BaseTTSEngine {
@@ -46,8 +47,9 @@ export class QwenEngine extends BaseTTSEngine {
           }
         };
 
-        // Call Qwen TTS API
-        const response = await fetch(this.apiEndpoint, {
+        // Call Qwen TTS API using Obsidian's requestUrl to bypass CORS
+        const response = await requestUrl({
+          url: this.apiEndpoint,
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
@@ -56,13 +58,12 @@ export class QwenEngine extends BaseTTSEngine {
           body: JSON.stringify(requestBody)
         });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Qwen TTS API error: ${response.status} - ${errorText}`);
+        if (response.status !== 200) {
+          throw new Error(`Qwen TTS API error: ${response.status} - ${response.text}`);
         }
 
         // Parse JSON response to get audio URL
-        const result = await response.json();
+        const result = response.json;
         if (!result.output || !result.output.audio || !result.output.audio.url) {
           throw new Error('Invalid API response: missing audio URL');
         }
