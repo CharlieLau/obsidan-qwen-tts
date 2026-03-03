@@ -106,14 +106,22 @@ export class TTSController {
     this.voiceSelect.addClass('tts-voice-select');
 
     // 从设置中动态加载音色列表
-    const voices = this.plugin.settings.qwen.voiceList;
+    const voices = this.plugin.settings.qwen.voiceList || [];
 
-    voices.forEach(voice => {
+    if (voices.length === 0) {
+      // 如果没有音色列表，添加一个默认选项
       const option = document.createElement('option');
-      option.value = voice.key;
-      option.textContent = voice.value;
+      option.value = 'Cherry';
+      option.textContent = 'Cherry (芊悦)';
       this.voiceSelect.appendChild(option);
-    });
+    } else {
+      voices.forEach(voice => {
+        const option = document.createElement('option');
+        option.value = voice.key;
+        option.textContent = voice.value;
+        this.voiceSelect.appendChild(option);
+      });
+    }
 
     // 设置当前选中的音色
     this.voiceSelect.value = this.plugin.settings.qwen.voice || 'Cherry';

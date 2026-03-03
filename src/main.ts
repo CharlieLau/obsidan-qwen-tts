@@ -95,7 +95,13 @@ export default class TTSPlugin extends Plugin {
   }
 
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    const loadedData = await this.loadData();
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
+
+    // 兼容旧版本：如果 voiceList 不存在，使用默认值
+    if (!this.settings.qwen.voiceList || this.settings.qwen.voiceList.length === 0) {
+      this.settings.qwen.voiceList = DEFAULT_SETTINGS.qwen.voiceList;
+    }
   }
 
   async saveSettings() {
