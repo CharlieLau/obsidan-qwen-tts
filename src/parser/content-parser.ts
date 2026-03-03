@@ -8,8 +8,11 @@ export interface ParsedContent {
 
 export class ContentParser {
   parse(markdown: string): ParsedContent {
+    // 0. 移除 YAML frontmatter (--- ... ---)
+    let processed = markdown.replace(/^---[\s\S]*?---\s*/m, '');
+
     // 1. 处理代码块
-    let processed = markdown.replace(/```[\s\S]*?```/g, '代码块');
+    processed = processed.replace(/```[\s\S]*?```/g, '代码块');
 
     // 2. 处理图片
     processed = processed.replace(/!\[.*?\]\(.*?\)/g, '');
@@ -40,9 +43,15 @@ export class ContentParser {
     processed = processed.replace(/^[\*\-\+]\s+/gm, '');
     processed = processed.replace(/^\d+\.\s+/gm, '');
 
-    // 8. 按语言分段
+    // 8. 移除水平分隔线（单独成行的 ---, ***, ___）
+    processed = processed.replace(/^[\-\*_]{3,}\s*$/gm, '');
+
+    // 9. 按语言分段
     const segments = segmentByLanguage(processed);
 
-    return { segments };
+    // 10. 过滤掉空白或只有空格的片段
+    const filteredSegments = segments.filter(seg => seg.text.trim().length > 0);
+
+    return { segments: filteredSegments };
   }
 }
