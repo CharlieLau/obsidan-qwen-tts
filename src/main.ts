@@ -90,6 +90,14 @@ export default class TTSPlugin extends Plugin {
   private onActiveLeafChange(): void {
     const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 
+    // 切换文档时停止播放
+    if (this.engineManager) {
+      const status = this.engineManager.getStatus();
+      if (status === 'playing' || status === 'paused') {
+        this.engineManager.stop();
+      }
+    }
+
     if (view) {
       // 渲染控制条
       this.controller.renderControlBar(view);
