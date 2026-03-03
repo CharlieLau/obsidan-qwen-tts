@@ -154,16 +154,19 @@ export class TTSSettingTab extends PluginSettingTab {
 
       new Setting(containerEl)
         .setName('音色选择')
-        .setDesc('选择语音合成的音色')
+        .setDesc('选择语音合成的音色（所有音色支持中英文）')
         .addDropdown(dropdown => dropdown
-          .addOption('Cherry', 'Cherry - 女声，温柔甜美')
-          .addOption('Emily', 'Emily - 女声，英文')
-          .addOption('Lily', 'Lily - 女声，活泼可爱')
-          .addOption('Luna', 'Luna - 女声，知性优雅')
-          .addOption('Stella', 'Stella - 女声，自然亲切')
-          .addOption('Harry', 'Harry - 男声，英文')
-          .addOption('William', 'William - 男声，沉稳成熟')
-          .addOption('Sam', 'Sam - 男声，年轻活力')
+          .addOption('Cherry', 'Cherry (芊悦) - 阳光积极、亲切自然')
+          .addOption('Serena', 'Serena (苏瑶) - 温柔小姐姐')
+          .addOption('Ethan', 'Ethan (晨煦) - 阳光温暖、活力朝气')
+          .addOption('Chelsie', 'Chelsie (千雪) - 二次元虚拟女友')
+          .addOption('Momo', 'Momo (茉兔) - 撒娇搞怪')
+          .addOption('Vivian', 'Vivian (十三) - 拽拽的可爱小暴躁')
+          .addOption('Moon', 'Moon (月白) - 率性帅气')
+          .addOption('Maia', 'Maia (四月) - 知性与温柔')
+          .addOption('Kai', 'Kai (凯) - 耳朵的SPA')
+          .addOption('Nofish', 'Nofish (不吃鱼) - 设计师')
+          .addOption('Bella', 'Bella (萌宝) - 可爱小萝莉')
           .setValue(this.plugin.settings.qwen.voice)
           .onChange(async (value) => {
             this.plugin.settings.qwen.voice = value;

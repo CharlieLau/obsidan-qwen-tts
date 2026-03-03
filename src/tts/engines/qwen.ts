@@ -34,26 +34,15 @@ export class QwenEngine extends BaseTTSEngine {
         this.cleanup();
 
         // Select voice and language type based on detected language
-        // For Chinese, use Cherry/Lily/Luna/Stella/William/Sam
-        // For English, use Emily/Harry
-        let voice: string;
-        let languageType: string;
+        // All voices support both Chinese and English
+        // Available voices: Cherry, Serena, Ethan, Chelsie, Momo, Vivian, Moon, Maia, Kai, Nofish, Bella
+        console.log('Detected language:', language);
+        console.log('Configured voice:', this.config.voice);
 
-        if (language === 'zh-CN') {
-          languageType = 'Chinese';
-          // Use configured voice if it's a Chinese voice, otherwise default to Cherry
-          const chineseVoices = ['Cherry', 'Lily', 'Luna', 'Stella', 'William', 'Sam'];
-          voice = (this.config.voice && chineseVoices.includes(this.config.voice))
-            ? this.config.voice
-            : 'Cherry';
-        } else {
-          languageType = 'English';
-          // Use configured voice if it's an English voice, otherwise default to Emily
-          const englishVoices = ['Emily', 'Harry'];
-          voice = (this.config.voice && englishVoices.includes(this.config.voice))
-            ? this.config.voice
-            : 'Emily';
-        }
+        const voice = this.config.voice || 'Cherry'; // Default to Cherry
+        const languageType = language === 'zh-CN' ? 'Chinese' : 'English';
+
+        console.log('Using voice:', voice, 'for language:', languageType);
 
         // Prepare request body for qwen3-tts-instruct-flash model
         const requestBody = {
