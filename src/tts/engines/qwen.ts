@@ -138,12 +138,21 @@ export class QwenEngine extends BaseTTSEngine {
   }
 
   stop(): void {
+    this.status = 'idle';
+    this.stopProgressTracking();
+
     if (this.audio) {
+      // 移除所有事件监听器，避免触发错误回调
+      this.audio.onloadeddata = null;
+      this.audio.onplay = null;
+      this.audio.onended = null;
+      this.audio.onerror = null;
+
+      // 停止播放
       this.audio.pause();
       this.audio.currentTime = 0;
     }
-    this.status = 'idle';
-    this.stopProgressTracking();
+
     this.cleanup();
   }
 
