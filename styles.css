@@ -1,55 +1,56 @@
-/* TTS Control Bar Styles */
+/* TTS Control Bar Styles - Compact & Modern */
 
 .tts-control-bar {
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
+  gap: 8px;
+  padding: 12px 16px;
   background: linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(49, 46, 129, 0.95) 100%);
   border-radius: 12px;
-  margin: 12px 0;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(249, 115, 22, 0.1);
+  margin: 8px 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), 0 0 12px rgba(249, 115, 22, 0.15);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(249, 115, 22, 0.2);
+  border: 1px solid rgba(249, 115, 22, 0.3);
   transition: all 0.3s ease;
+  max-width: fit-content;
 }
 
 .tts-control-bar:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(249, 115, 22, 0.2);
-  border-color: rgba(249, 115, 22, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 0 0 16px rgba(249, 115, 22, 0.25);
+  border-color: rgba(249, 115, 22, 0.5);
 }
 
 /* Main Controls Row */
 .tts-controls-main {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 /* Buttons */
 .tts-control-bar button {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 16px;
+  gap: 4px;
+  padding: 8px 14px;
   border: none;
   border-radius: 8px;
   background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
   color: #FFFFFF;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
-  min-width: 44px;
-  min-height: 44px;
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.3);
+  min-height: 36px;
+  white-space: nowrap;
 }
 
 .tts-control-bar button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(249, 115, 22, 0.5);
   background: linear-gradient(135deg, #FB923C 0%, #F97316 100%);
 }
 
@@ -65,28 +66,27 @@
 
 /* Status Text */
 .tts-status-text {
-  margin-left: auto;
-  font-size: 13px;
+  font-size: 12px;
   color: rgba(248, 250, 252, 0.8);
-  font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-weight: 400;
-  padding: 8px 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  padding: 6px 10px;
   background: rgba(15, 15, 35, 0.5);
   border-radius: 6px;
   border: 1px solid rgba(249, 115, 22, 0.2);
+  white-space: nowrap;
 }
 
 /* Progress Bar Container */
 .tts-progress-container {
   display: flex;
   align-items: center;
-  gap: 12px;
-  width: 100%;
+  gap: 10px;
+  min-width: 300px;
 }
 
 .tts-progress-bar {
   flex: 1;
-  height: 6px;
+  height: 5px;
   background: rgba(15, 15, 35, 0.8);
   border-radius: 3px;
   overflow: hidden;
@@ -97,7 +97,7 @@
 }
 
 .tts-progress-bar:hover {
-  height: 8px;
+  height: 6px;
   border-color: rgba(249, 115, 22, 0.4);
 }
 
@@ -106,42 +106,50 @@
   background: linear-gradient(90deg, #F97316 0%, #EA580C 100%);
   border-radius: 3px;
   transition: width 0.1s linear;
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.5);
 }
 
 .tts-progress-time {
-  font-size: 12px;
+  font-size: 11px;
   color: rgba(248, 250, 252, 0.7);
-  font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
-  min-width: 90px;
+  font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+  min-width: 80px;
   text-align: right;
+}
+
+/* Settings Row */
+.tts-settings-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 /* Voice Selector */
 .tts-voice-selector {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .tts-voice-label {
-  font-size: 13px;
+  font-size: 12px;
   color: rgba(248, 250, 252, 0.9);
-  font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-weight: 500;
 }
 
 .tts-voice-select {
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: rgba(15, 15, 35, 0.8);
   border: 1px solid rgba(249, 115, 22, 0.3);
   border-radius: 6px;
   color: #F8FAFC;
-  font-size: 13px;
-  font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 150px;
+  min-width: 140px;
 }
 
 .tts-voice-select:hover {
@@ -152,23 +160,23 @@
 .tts-voice-select:focus {
   outline: none;
   border-color: #F97316;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
 }
 
 /* Custom Voice Toggle */
 .tts-custom-voice-toggle {
-  padding: 8px;
+  padding: 6px 10px;
   background: rgba(15, 15, 35, 0.8);
   border: 1px solid rgba(249, 115, 22, 0.3);
   border-radius: 6px;
   color: #F8FAFC;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 44px;
-  min-height: 44px;
-  display: flex;
+  min-height: 32px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  font-size: 14px;
 }
 
 .tts-custom-voice-toggle:hover {
@@ -185,12 +193,13 @@
 .tts-custom-voice-container {
   display: none;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px;
+  gap: 6px;
+  padding: 10px;
   background: rgba(15, 15, 35, 0.6);
   border-radius: 8px;
   border: 1px solid rgba(249, 115, 22, 0.2);
   animation: slideDown 0.3s ease;
+  min-width: 300px;
 }
 
 .tts-custom-voice-container.visible {
@@ -200,7 +209,7 @@
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
   to {
     opacity: 1;
@@ -209,20 +218,20 @@
 }
 
 .tts-custom-voice-input {
-  padding: 10px 12px;
+  padding: 8px 10px;
   background: rgba(15, 15, 35, 0.9);
   border: 1px solid rgba(249, 115, 22, 0.3);
   border-radius: 6px;
   color: #F8FAFC;
-  font-size: 13px;
-  font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   transition: all 0.2s ease;
 }
 
 .tts-custom-voice-input:focus {
   outline: none;
   border-color: #F97316;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
 }
 
 .tts-custom-voice-input::placeholder {
@@ -230,32 +239,25 @@
 }
 
 .tts-custom-voice-hint {
-  font-size: 11px;
+  font-size: 10px;
   color: rgba(248, 250, 252, 0.6);
-  font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-/* Settings Row */
-.tts-settings-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.4;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .tts-control-bar {
-    padding: 12px;
+    padding: 10px 12px;
+    max-width: 100%;
   }
 
   .tts-controls-main {
     flex-wrap: wrap;
   }
 
-  .tts-status-text {
-    width: 100%;
-    text-align: center;
+  .tts-progress-container {
+    min-width: 250px;
   }
 
   .tts-voice-select {
