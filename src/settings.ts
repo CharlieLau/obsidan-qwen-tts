@@ -19,7 +19,7 @@ export interface TTSSettings {
     model: string;
     voice: string;
     customVoice: string;
-    voiceList: Array<{ key: string; value: string }>;
+    voiceList: Array<{ key: string; value: string; desc?: string }>;
   };
   openai: {
     apiKey: string;
@@ -43,17 +43,17 @@ export const DEFAULT_SETTINGS: TTSSettings = {
     voice: 'Cherry',
     customVoice: '',
     voiceList: [
-      { key: 'Cherry', value: 'Cherry (芊悦)' },
-      { key: 'Serena', value: 'Serena (苏瑶)' },
-      { key: 'Ethan', value: 'Ethan (晨煦)' },
-      { key: 'Chelsie', value: 'Chelsie (千雪)' },
-      { key: 'Momo', value: 'Momo (茉兔)' },
-      { key: 'Vivian', value: 'Vivian (十三)' },
-      { key: 'Moon', value: 'Moon (月白)' },
-      { key: 'Maia', value: 'Maia (四月)' },
-      { key: 'Kai', value: 'Kai (凯)' },
-      { key: 'Nofish', value: 'Nofish (不吃鱼)' },
-      { key: 'Bella', value: 'Bella (萌宝)' }
+      { key: 'Cherry', value: 'Cherry (芊悦)', desc: '阳光积极、亲切自然小姐姐（女性）' },
+      { key: 'Serena', value: 'Serena (苏瑶)', desc: '温柔小姐姐（女性）' },
+      { key: 'Ethan', value: 'Ethan (晨煦)', desc: '阳光、温暖、活力、朝气（男性）' },
+      { key: 'Chelsie', value: 'Chelsie (千雪)', desc: '二次元虚拟女友（女性）' },
+      { key: 'Momo', value: 'Momo (茉兔)', desc: '撒娇搞怪，逗你开心（女性）' },
+      { key: 'Vivian', value: 'Vivian (十三)', desc: '拽拽的、可爱的小暴躁（女性）' },
+      { key: 'Moon', value: 'Moon (月白)', desc: '率性帅气的月白（男性）' },
+      { key: 'Maia', value: 'Maia (四月)', desc: '知性与温柔的碰撞（女性）' },
+      { key: 'Kai', value: 'Kai (凯)', desc: '耳朵的一场SPA（男性）' },
+      { key: 'Nofish', value: 'Nofish (不吃鱼)', desc: '不会翘舌音的设计师（男性）' },
+      { key: 'Bella', value: 'Bella (萌宝)', desc: '喝酒不打醉拳的小萝莉（女性）' }
     ]
   },
   openai: {
@@ -110,7 +110,7 @@ export class TTSSettingTab extends PluginSettingTab {
     this.displayEngineSettings(containerEl);
   }
 
-  private createVoiceListItem(containerEl: HTMLElement, voice: { key: string; value: string }, index: number): void {
+  private createVoiceListItem(containerEl: HTMLElement, voice: { key: string; value: string; desc?: string }, index: number): void {
     const setting = new Setting(containerEl)
       .setClass('tts-voice-list-item')
       .addText(text => text
@@ -125,6 +125,13 @@ export class TTSSettingTab extends PluginSettingTab {
         .setValue(voice.value)
         .onChange(async (value) => {
           this.plugin.settings.qwen.voiceList[index].value = value;
+          await this.plugin.saveSettings();
+        }))
+      .addText(text => text
+        .setPlaceholder('描述 (如 阳光积极、亲切自然)')
+        .setValue(voice.desc || '')
+        .onChange(async (value) => {
+          this.plugin.settings.qwen.voiceList[index].desc = value;
           await this.plugin.saveSettings();
         }))
       .addButton(button => button
@@ -244,7 +251,7 @@ export class TTSSettingTab extends PluginSettingTab {
 
       const voiceListDesc = containerEl.createEl('div', {
         cls: 'setting-item-description',
-        text: '管理可用的音色列表。Key 是音色的实际值（如 Cherry），Value 是显示名称（如 Cherry (芊悦)）。'
+        text: '管理可用的音色列表。Key 是音色参数（如 Cherry），Value 是显示名称（如 Cherry (芊悦)），描述是音色特点。'
       });
       voiceListDesc.style.marginBottom = '10px';
 
@@ -258,7 +265,7 @@ export class TTSSettingTab extends PluginSettingTab {
         .addButton(button => button
           .setButtonText('+ 添加音色')
           .onClick(async () => {
-            this.plugin.settings.qwen.voiceList.push({ key: '', value: '' });
+            this.plugin.settings.qwen.voiceList.push({ key: '', value: '', desc: '' });
             await this.plugin.saveSettings();
             this.display(); // 重新渲染
           }));
