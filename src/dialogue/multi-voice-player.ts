@@ -2,7 +2,7 @@
 
 import { TTSEngineManager } from '../tts/engine-manager';
 import { DialogueLine } from './types';
-import { Language } from '../tts/engines/base';
+import { Language, EngineStatus } from '../tts/engines/base';
 
 export class MultiVoicePlayer {
   private engineManager: TTSEngineManager;
@@ -86,6 +86,14 @@ export class MultiVoicePlayer {
     this.isPlaying = false;
     this.currentIndex = 0;
     this.engineManager.stop();
+  }
+
+  /**
+   * 获取播放状态
+   */
+  getStatus(): EngineStatus {
+    // 对话播放器的状态与引擎状态一致
+    return this.engineManager.getStatus();
   }
 
   /**

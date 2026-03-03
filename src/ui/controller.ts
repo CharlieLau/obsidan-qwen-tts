@@ -26,6 +26,7 @@ export class TTSController {
   private contentParser: ContentParser;
   private plugin: TTSPlugin;
   private currentAudio: HTMLAudioElement | null = null;
+  private isDialogueMode: boolean = false;
 
   constructor(engineManager: TTSEngineManager, plugin: TTSPlugin) {
     this.engineManager = engineManager;
@@ -235,23 +236,49 @@ export class TTSController {
   }
 
   private handlePause(): void {
-    const status = this.engineManager.getStatus();
+    if (this.isDialogueMode) {
+      // 对话模式：控制 MultiVoicePlayer
+      const status = this.plugin.multiVoicePlayer.getStatus();
 
-    if (status === 'playing') {
-      this.engineManager.pause();
-      this.updateUIState('paused');
-      this.pauseButton.textContent = '▶';
-      this.pauseButton.title = '继续';
-    } else if (status === 'paused') {
-      this.engineManager.resume();
-      this.updateUIState('playing');
-      this.pauseButton.textContent = '⏸';
-      this.pauseButton.title = '暂停';
+      if (status === 'playing') {
+        this.plugin.multiVoicePlayer.pause();
+        this.updateUIState('paused');
+        this.pauseButton.textContent = '▶';
+        this.pauseButton.title = '继续';
+      } else if (status === 'paused') {
+        this.plugin.multiVoicePlayer.resume();
+        this.updateUIState('playing');
+        this.pauseButton.textContent = '⏸';
+        this.pauseButton.title = '暂停';
+      }
+    } else {
+      // 普通模式：控制 EngineManager
+      const status = this.engineManager.getStatus();
+
+      if (status === 'playing') {
+        this.engineManager.pause();
+        this.updateUIState('paused');
+        this.pauseButton.textContent = '▶';
+        this.pauseButton.title = '继续';
+      } else if (status === 'paused') {
+        this.engineManager.resume();
+        this.updateUIState('playing');
+        this.pauseButton.textContent = '⏸';
+        this.pauseButton.title = '暂停';
+      }
     }
   }
 
   private handleStop(): void {
-    this.engineManager.stop();
+    if (this.isDialogueMode) {
+      // 对话模式：停止 MultiVoicePlayer
+      this.plugin.multiVoicePlayer.stop();
+      this.isDialogueMode = false;
+    } else {
+      // 普通模式：停止 EngineManager
+      this.engineManager.stop();
+    }
+
     this.updateUIState('idle');
     this.progressFill.style.width = '0%';
     this.progressTime.textContent = '0:00 / 0:00';
@@ -419,6 +446,9 @@ export class TTSController {
       // 加载对话到播放器
       await this.plugin.multiVoicePlayer.loadDialogue(dialogueLines);
 
+      // 标记为对话模式
+      this.isDialogueMode = true;
+
       // 更新 UI 状态
       this.updateUIState('playing');
 
@@ -426,6 +456,7 @@ export class TTSController {
       await this.plugin.multiVoicePlayer.play();
 
       // 播放完成
+      this.isDialogueMode = false;
       this.updateUIState('idle');
       new Notice('对话播放完成');
     } catch (error) {
