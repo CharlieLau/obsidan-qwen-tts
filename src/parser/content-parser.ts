@@ -9,7 +9,32 @@ export interface ParsedContent {
 export class ContentParser {
   parse(markdown: string): ParsedContent {
     // 0. 移除 YAML frontmatter (--- ... ---)
-    let processed = markdown.replace(/^---[\s\S]*?---\s*/m, '');
+    // 只移除文档开头的 frontmatter，使用更精确的匹配
+    // 匹配：开头的 --- + 任意内容 + 单独一行的 --- + 换行
+    let processed = markdown;
+    if (markdown.trimStart().startsWith('---\n')) {
+      // 找到第二个单独成行的 ---
+      const lines = markdown.split('\n');
+      let endIndex = -1;
+      let inFrontmatter = false;
+
+      for (let i = 0; i < lines.length; i++) {
+        const trimmed = lines[i].trim();
+        if (i === 0 && trimmed === '---') {
+          inFrontmatter = true;
+          continue;
+        }
+        if (inFrontmatter && trimmed === '---') {
+          endIndex = i;
+          break;
+        }
+      }
+
+      if (endIndex > 0) {
+        // 移除 frontmatter（包括结束的 --- 行）
+        processed = lines.slice(endIndex + 1).join('\n');
+      }
+    }
 
     // 1. 处理代码块
     processed = processed.replace(/```[\s\S]*?```/g, '代码块');
