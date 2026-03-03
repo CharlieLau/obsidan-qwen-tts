@@ -21,8 +21,34 @@ export class DialogueParser {
    * 解析对话脚本
    */
   parse(script: string): DialogueLine[] {
-    // TODO: 实现解析逻辑
-    return [];
+    const lines = script.split('\n').filter(line => line.trim());
+    const dialogueLines: DialogueLine[] = [];
+
+    for (const line of lines) {
+      // 识别角色
+      let role: DialogueRole | null = null;
+      let content = line;
+
+      // 尝试匹配每个角色
+      for (const [roleKey, pattern] of Object.entries(this.rolePatterns)) {
+        if (pattern.test(line)) {
+          role = roleKey as DialogueRole;
+          content = line.replace(pattern, '');
+          break;
+        }
+      }
+
+      // 如果识别到角色，添加到结果
+      if (role && content.trim()) {
+        dialogueLines.push({
+          role,
+          content: content.trim(),
+          voice: this.voiceMapping[role]
+        });
+      }
+    }
+
+    return dialogueLines;
   }
 
   /**
