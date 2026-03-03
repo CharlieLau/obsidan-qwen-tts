@@ -17,6 +17,7 @@ export interface TTSSettings {
   qwen: {
     apiKey: string;
     voice: string;
+    customVoice: string;
   };
   openai: {
     apiKey: string;
@@ -36,7 +37,8 @@ export const DEFAULT_SETTINGS: TTSSettings = {
   },
   qwen: {
     apiKey: '',
-    voice: 'Cherry'
+    voice: 'Cherry',
+    customVoice: ''
   },
   openai: {
     apiKey: ''

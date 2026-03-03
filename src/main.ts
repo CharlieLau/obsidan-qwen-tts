@@ -32,7 +32,7 @@ export default class TTSPlugin extends Plugin {
     });
 
     // 初始化 UI 控制器
-    this.controller = new TTSController(this.engineManager);
+    this.controller = new TTSController(this.engineManager, this);
 
     // 注册设置面板
     this.addSettingTab(new TTSSettingTab(this.app, this));
