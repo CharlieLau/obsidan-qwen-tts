@@ -1,273 +1,253 @@
-/* TTS Control Bar Styles - Compact & Modern */
+/* TTS Control Bar - Minimalist Audio Player Style */
 
 .tts-control-bar {
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(49, 46, 129, 0.95) 100%);
-  border-radius: 12px;
-  margin: 8px 0;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), 0 0 12px rgba(249, 115, 22, 0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(249, 115, 22, 0.3);
-  transition: all 0.3s ease;
-  max-width: fit-content;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  margin: 12px 0;
+  max-width: 100%;
 }
 
-.tts-control-bar:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 0 0 16px rgba(249, 115, 22, 0.25);
-  border-color: rgba(249, 115, 22, 0.5);
-}
-
-/* Main Controls Row */
+/* Main Controls Row - Single Line Layout */
 .tts-controls-main {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
 }
 
-/* Buttons */
+/* Play/Pause Button - Circular */
 .tts-control-bar button {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 8px 14px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border: none;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
-  color: #FFFFFF;
+  border-radius: 50%;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 16px;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.3);
-  min-height: 36px;
-  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tts-control-bar button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(249, 115, 22, 0.5);
-  background: linear-gradient(135deg, #FB923C 0%, #F97316 100%);
+  background: var(--interactive-accent-hover);
+  transform: scale(1.05);
 }
 
 .tts-control-bar button:active:not(:disabled) {
-  transform: translateY(0);
+  transform: scale(0.95);
 }
 
 .tts-control-bar button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
 }
 
-/* Status Text */
-.tts-status-text {
-  font-size: 12px;
-  color: rgba(248, 250, 252, 0.8);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  padding: 6px 10px;
-  background: rgba(15, 15, 35, 0.5);
-  border-radius: 6px;
-  border: 1px solid rgba(249, 115, 22, 0.2);
-  white-space: nowrap;
-}
-
-/* Progress Bar Container */
+/* Progress Bar Container - Takes Most Space */
 .tts-progress-container {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 300px;
+  gap: 12px;
+  flex: 1;
 }
 
 .tts-progress-bar {
   flex: 1;
-  height: 5px;
-  background: rgba(15, 15, 35, 0.8);
-  border-radius: 3px;
+  height: 4px;
+  background: var(--background-modifier-border);
+  border-radius: 2px;
   overflow: hidden;
   cursor: pointer;
   position: relative;
-  border: 1px solid rgba(249, 115, 22, 0.2);
-  transition: all 0.2s ease;
+  transition: height 0.2s ease;
 }
 
 .tts-progress-bar:hover {
   height: 6px;
-  border-color: rgba(249, 115, 22, 0.4);
 }
 
 .tts-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #F97316 0%, #EA580C 100%);
-  border-radius: 3px;
+  background: var(--interactive-accent);
+  border-radius: 2px;
   transition: width 0.1s linear;
-  box-shadow: 0 0 8px rgba(249, 115, 22, 0.5);
 }
 
 .tts-progress-time {
-  font-size: 11px;
-  color: rgba(248, 250, 252, 0.7);
-  font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
-  min-width: 80px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-monospace);
+  min-width: 95px;
   text-align: right;
+  flex-shrink: 0;
 }
 
-/* Settings Row */
+/* Status Text - Hidden by default, shown when needed */
+.tts-status-text {
+  display: none;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  background: var(--background-secondary);
+  border-radius: 4px;
+  margin-left: auto;
+}
+
+.tts-status-text.visible {
+  display: block;
+}
+
+/* Settings Row - Below Main Controls */
 .tts-settings-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--background-modifier-border);
 }
 
 /* Voice Selector */
 .tts-voice-selector {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  flex: 1;
 }
 
 .tts-voice-label {
-  font-size: 12px;
-  color: rgba(248, 250, 252, 0.9);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  color: var(--text-normal);
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 .tts-voice-select {
+  flex: 1;
+  max-width: 200px;
   padding: 6px 10px;
-  background: rgba(15, 15, 35, 0.8);
-  border: 1px solid rgba(249, 115, 22, 0.3);
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
-  color: #F8FAFC;
-  font-size: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--text-normal);
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 140px;
 }
 
 .tts-voice-select:hover {
-  border-color: rgba(249, 115, 22, 0.5);
-  background: rgba(15, 15, 35, 0.9);
+  border-color: var(--interactive-accent);
 }
 
 .tts-voice-select:focus {
   outline: none;
-  border-color: #F97316;
-  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px var(--background-modifier-border);
 }
 
 /* Custom Voice Toggle */
 .tts-custom-voice-toggle {
-  padding: 6px 10px;
-  background: rgba(15, 15, 35, 0.8);
-  border: 1px solid rgba(249, 115, 22, 0.3);
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
-  color: #F8FAFC;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: 32px;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
+  flex-shrink: 0;
 }
 
 .tts-custom-voice-toggle:hover {
-  border-color: rgba(249, 115, 22, 0.5);
-  background: rgba(15, 15, 35, 0.9);
+  border-color: var(--interactive-accent);
+  color: var(--text-normal);
 }
 
 .tts-custom-voice-toggle.active {
-  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
-  border-color: #F97316;
+  background: var(--interactive-accent);
+  border-color: var(--interactive-accent);
+  color: var(--text-on-accent);
 }
 
 /* Custom Voice Input Container */
 .tts-custom-voice-container {
   display: none;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px;
-  background: rgba(15, 15, 35, 0.6);
-  border-radius: 8px;
-  border: 1px solid rgba(249, 115, 22, 0.2);
-  animation: slideDown 0.3s ease;
-  min-width: 300px;
+  gap: 8px;
+  padding: 12px;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  margin-top: 8px;
 }
 
 .tts-custom-voice-container.visible {
   display: flex;
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .tts-custom-voice-input {
-  padding: 8px 10px;
-  background: rgba(15, 15, 35, 0.9);
-  border: 1px solid rgba(249, 115, 22, 0.3);
+  padding: 8px 12px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
-  color: #F8FAFC;
-  font-size: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--text-normal);
+  font-size: 13px;
   transition: all 0.2s ease;
 }
 
 .tts-custom-voice-input:focus {
   outline: none;
-  border-color: #F97316;
-  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px var(--background-modifier-border);
 }
 
 .tts-custom-voice-input::placeholder {
-  color: rgba(248, 250, 252, 0.4);
+  color: var(--text-faint);
 }
 
 .tts-custom-voice-hint {
-  font-size: 10px;
-  color: rgba(248, 250, 252, 0.6);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .tts-control-bar {
-    padding: 10px 12px;
-    max-width: 100%;
+    padding: 12px 16px;
   }
 
   .tts-controls-main {
+    gap: 12px;
+  }
+
+  .tts-progress-time {
+    min-width: 85px;
+    font-size: 12px;
+  }
+
+  .tts-settings-row {
     flex-wrap: wrap;
   }
 
-  .tts-progress-container {
-    min-width: 250px;
-  }
-
   .tts-voice-select {
-    min-width: 120px;
+    max-width: 160px;
   }
 }
 
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-  .tts-control-bar,
   .tts-control-bar button,
   .tts-progress-bar,
   .tts-progress-fill,
@@ -279,9 +259,5 @@
 
   .tts-control-bar button:hover:not(:disabled) {
     transform: none;
-  }
-
-  .tts-custom-voice-container {
-    animation: none;
   }
 }

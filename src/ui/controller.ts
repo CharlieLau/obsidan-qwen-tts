@@ -42,32 +42,33 @@ export class TTSController {
     const mainControls = document.createElement('div');
     mainControls.addClass('tts-controls-main');
 
-    // 创建开始按钮
+    // 创建开始按钮（圆形）
     this.startButton = document.createElement('button');
-    this.startButton.textContent = '▶ 播放';
+    this.startButton.textContent = '▶';
+    this.startButton.title = '播放';
     this.startButton.onclick = () => this.handleStart(view);
 
-    // 创建暂停按钮
+    // 创建暂停按钮（圆形）
     this.pauseButton = document.createElement('button');
-    this.pauseButton.textContent = '⏸ 暂停';
+    this.pauseButton.textContent = '⏸';
+    this.pauseButton.title = '暂停';
     this.pauseButton.onclick = () => this.handlePause();
     this.pauseButton.style.display = 'none';
 
-    // 创建停止按钮
+    // 创建停止按钮（圆形）
     this.stopButton = document.createElement('button');
-    this.stopButton.textContent = '⏹ 停止';
+    this.stopButton.textContent = '⏹';
+    this.stopButton.title = '停止';
     this.stopButton.onclick = () => this.handleStop();
     this.stopButton.style.display = 'none';
-
-    // 创建状态文本
-    this.statusText = document.createElement('span');
-    this.statusText.addClass('tts-status-text');
-    this.statusText.textContent = '就绪';
 
     mainControls.appendChild(this.startButton);
     mainControls.appendChild(this.pauseButton);
     mainControls.appendChild(this.stopButton);
-    mainControls.appendChild(this.statusText);
+
+    // 创建状态文本（隐藏，仅在错误时显示）
+    this.statusText = document.createElement('span');
+    this.statusText.addClass('tts-status-text');
 
     // 创建进度条容器
     const progressContainer = document.createElement('div');
@@ -89,6 +90,10 @@ export class TTSController {
 
     progressContainer.appendChild(this.progressBar);
     progressContainer.appendChild(this.progressTime);
+
+    // 将进度条添加到主控制行
+    mainControls.appendChild(progressContainer);
+    mainControls.appendChild(this.statusText);
 
     // 创建设置行
     const settingsRow = document.createElement('div');
@@ -172,7 +177,6 @@ export class TTSController {
 
     // 组装控制条
     this.controlBar.appendChild(mainControls);
-    this.controlBar.appendChild(progressContainer);
     this.controlBar.appendChild(settingsRow);
     this.controlBar.appendChild(this.customVoiceContainer);
 
@@ -215,18 +219,16 @@ export class TTSController {
 
       // 更新 UI
       this.updateUIState('playing');
-      this.statusText.textContent = '正在播放...';
 
       // 开始播放
       await this.engineManager.speakSegments(parsed.segments);
 
       // 播放完成
       this.updateUIState('idle');
-      this.statusText.textContent = '播放完成';
     } catch (error) {
       new Notice(`播放失败: ${error.message}`);
       this.updateUIState('idle');
-      this.statusText.textContent = '播放失败';
+      this.showStatus('播放失败', true);
     }
   }
 
@@ -236,22 +238,33 @@ export class TTSController {
     if (status === 'playing') {
       this.engineManager.pause();
       this.updateUIState('paused');
-      this.statusText.textContent = '已暂停';
-      this.pauseButton.textContent = '▶ 继续';
+      this.pauseButton.textContent = '▶';
+      this.pauseButton.title = '继续';
     } else if (status === 'paused') {
       this.engineManager.resume();
       this.updateUIState('playing');
-      this.statusText.textContent = '正在播放...';
-      this.pauseButton.textContent = '⏸ 暂停';
+      this.pauseButton.textContent = '⏸';
+      this.pauseButton.title = '暂停';
     }
   }
 
   private handleStop(): void {
     this.engineManager.stop();
     this.updateUIState('idle');
-    this.statusText.textContent = '已停止';
     this.progressFill.style.width = '0%';
     this.progressTime.textContent = '0:00 / 0:00';
+  }
+
+  private showStatus(message: string, isError: boolean = false): void {
+    this.statusText.textContent = message;
+    this.statusText.addClass('visible');
+    if (isError) {
+      this.statusText.style.color = 'var(--text-error)';
+    }
+    setTimeout(() => {
+      this.statusText.removeClass('visible');
+      this.statusText.style.color = '';
+    }, 3000);
   }
 
   private handleProgressClick(e: MouseEvent): void {
@@ -281,12 +294,14 @@ export class TTSController {
     } else if (status === 'playing') {
       this.startButton.style.display = 'none';
       this.pauseButton.style.display = '';
-      this.pauseButton.textContent = '⏸ 暂停';
+      this.pauseButton.textContent = '⏸';
+      this.pauseButton.title = '暂停';
       this.stopButton.style.display = '';
     } else if (status === 'paused') {
       this.startButton.style.display = 'none';
       this.pauseButton.style.display = '';
-      this.pauseButton.textContent = '▶ 继续';
+      this.pauseButton.textContent = '▶';
+      this.pauseButton.title = '继续';
       this.stopButton.style.display = '';
     }
   }
