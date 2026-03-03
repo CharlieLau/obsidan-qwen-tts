@@ -105,25 +105,13 @@ export class TTSController {
     this.voiceSelect = document.createElement('select');
     this.voiceSelect.addClass('tts-voice-select');
 
-    // 添加音色选项
-    const voices = [
-      { value: 'Cherry', label: 'Cherry (芊悦)' },
-      { value: 'Serena', label: 'Serena (苏瑶)' },
-      { value: 'Ethan', label: 'Ethan (晨煦)' },
-      { value: 'Chelsie', label: 'Chelsie (千雪)' },
-      { value: 'Momo', label: 'Momo (茉兔)' },
-      { value: 'Vivian', label: 'Vivian (十三)' },
-      { value: 'Moon', label: 'Moon (月白)' },
-      { value: 'Maia', label: 'Maia (四月)' },
-      { value: 'Kai', label: 'Kai (凯)' },
-      { value: 'Nofish', label: 'Nofish (不吃鱼)' },
-      { value: 'Bella', label: 'Bella (萌宝)' }
-    ];
+    // 从设置中动态加载音色列表
+    const voices = this.plugin.settings.qwen.voiceList;
 
     voices.forEach(voice => {
       const option = document.createElement('option');
-      option.value = voice.value;
-      option.textContent = voice.label;
+      option.value = voice.key;
+      option.textContent = voice.value;
       this.voiceSelect.appendChild(option);
     });
 

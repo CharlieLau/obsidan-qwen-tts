@@ -19,6 +19,7 @@ export interface TTSSettings {
     model: string;
     voice: string;
     customVoice: string;
+    voiceList: Array<{ key: string; value: string }>;
   };
   openai: {
     apiKey: string;
@@ -40,7 +41,20 @@ export const DEFAULT_SETTINGS: TTSSettings = {
     apiKey: '',
     model: 'qwen3-tts-instruct-flash',
     voice: 'Cherry',
-    customVoice: ''
+    customVoice: '',
+    voiceList: [
+      { key: 'Cherry', value: 'Cherry (芊悦)' },
+      { key: 'Serena', value: 'Serena (苏瑶)' },
+      { key: 'Ethan', value: 'Ethan (晨煦)' },
+      { key: 'Chelsie', value: 'Chelsie (千雪)' },
+      { key: 'Momo', value: 'Momo (茉兔)' },
+      { key: 'Vivian', value: 'Vivian (十三)' },
+      { key: 'Moon', value: 'Moon (月白)' },
+      { key: 'Maia', value: 'Maia (四月)' },
+      { key: 'Kai', value: 'Kai (凯)' },
+      { key: 'Nofish', value: 'Nofish (不吃鱼)' },
+      { key: 'Bella', value: 'Bella (萌宝)' }
+    ]
   },
   openai: {
     apiKey: ''
@@ -94,6 +108,38 @@ export class TTSSettingTab extends PluginSettingTab {
 
     // 根据选择的引擎显示对应的配置
     this.displayEngineSettings(containerEl);
+  }
+
+  private createVoiceListItem(containerEl: HTMLElement, voice: { key: string; value: string }, index: number): void {
+    const setting = new Setting(containerEl)
+      .addText(text => text
+        .setPlaceholder('Key (如 Cherry)')
+        .setValue(voice.key)
+        .onChange(async (value) => {
+          this.plugin.settings.qwen.voiceList[index].key = value;
+          await this.plugin.saveSettings();
+        }))
+      .addText(text => text
+        .setPlaceholder('Value (如 Cherry (芊悦))')
+        .setValue(voice.value)
+        .onChange(async (value) => {
+          this.plugin.settings.qwen.voiceList[index].value = value;
+          await this.plugin.saveSettings();
+        }))
+      .addButton(button => button
+        .setButtonText('删除')
+        .setWarning()
+        .onClick(async () => {
+          this.plugin.settings.qwen.voiceList.splice(index, 1);
+          await this.plugin.saveSettings();
+          this.display(); // 重新渲染
+        }));
+
+    // 设置样式，让两个输入框并排显示
+    setting.settingEl.style.display = 'grid';
+    setting.settingEl.style.gridTemplateColumns = '1fr 1fr auto';
+    setting.settingEl.style.gap = '10px';
+    setting.settingEl.style.alignItems = 'center';
   }
 
   private displayEngineSettings(containerEl: HTMLElement): void {
@@ -169,23 +215,42 @@ export class TTSSettingTab extends PluginSettingTab {
 
       new Setting(containerEl)
         .setName('音色选择')
-        .setDesc('选择语音合成的音色（所有音色支持中英文）')
-        .addDropdown(dropdown => dropdown
-          .addOption('Cherry', 'Cherry (芊悦) - 阳光积极、亲切自然')
-          .addOption('Serena', 'Serena (苏瑶) - 温柔小姐姐')
-          .addOption('Ethan', 'Ethan (晨煦) - 阳光温暖、活力朝气')
-          .addOption('Chelsie', 'Chelsie (千雪) - 二次元虚拟女友')
-          .addOption('Momo', 'Momo (茉兔) - 撒娇搞怪')
-          .addOption('Vivian', 'Vivian (十三) - 拽拽的可爱小暴躁')
-          .addOption('Moon', 'Moon (月白) - 率性帅气')
-          .addOption('Maia', 'Maia (四月) - 知性与温柔')
-          .addOption('Kai', 'Kai (凯) - 耳朵的SPA')
-          .addOption('Nofish', 'Nofish (不吃鱼) - 设计师')
-          .addOption('Bella', 'Bella (萌宝) - 可爱小萝莉')
-          .setValue(this.plugin.settings.qwen.voice)
-          .onChange(async (value) => {
-            this.plugin.settings.qwen.voice = value;
+        .setDesc('选择语音合成的音色')
+        .addDropdown(dropdown => {
+          // 从 voiceList 动态生成选项
+          this.plugin.settings.qwen.voiceList.forEach(voice => {
+            dropdown.addOption(voice.key, voice.value);
+          });
+          return dropdown
+            .setValue(this.plugin.settings.qwen.voice)
+            .onChange(async (value) => {
+              this.plugin.settings.qwen.voice = value;
+              await this.plugin.saveSettings();
+            });
+        });
+
+      // 音色列表管理
+      containerEl.createEl('h4', { text: '音色列表管理' });
+
+      const voiceListDesc = containerEl.createEl('div', {
+        cls: 'setting-item-description',
+        text: '管理可用的音色列表。Key 是音色的实际值（如 Cherry），Value 是显示名称（如 Cherry (芊悦)）。'
+      });
+      voiceListDesc.style.marginBottom = '10px';
+
+      // 显示现有音色列表
+      this.plugin.settings.qwen.voiceList.forEach((voice, index) => {
+        this.createVoiceListItem(containerEl, voice, index);
+      });
+
+      // 添加新音色按钮
+      new Setting(containerEl)
+        .addButton(button => button
+          .setButtonText('+ 添加音色')
+          .onClick(async () => {
+            this.plugin.settings.qwen.voiceList.push({ key: '', value: '' });
             await this.plugin.saveSettings();
+            this.display(); // 重新渲染
           }));
     } else if (engine === 'openai') {
       containerEl.createEl('h3', { text: 'OpenAI 配置' });
