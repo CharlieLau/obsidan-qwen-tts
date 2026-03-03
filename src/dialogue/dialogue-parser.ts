@@ -55,7 +55,41 @@ export class DialogueParser {
    * 验证对话脚本格式
    */
   validate(script: string): DialogueValidation {
-    // TODO: 实现验证逻辑
-    return { isValid: true, errors: [] };
+    const errors: string[] = [];
+    const lines = script.split('\n').filter(line => line.trim());
+
+    // 检查是否有对话内容
+    if (lines.length === 0) {
+      errors.push('对话脚本为空');
+      return { isValid: false, errors };
+    }
+
+    // 检查是否有无法识别的行
+    let unrecognizedLines = 0;
+    let recognizedLines = 0;
+
+    for (const line of lines) {
+      const hasRole = Object.values(this.rolePatterns).some(
+        pattern => pattern.test(line)
+      );
+
+      if (hasRole) {
+        recognizedLines++;
+      } else {
+        unrecognizedLines++;
+      }
+    }
+
+    // 如果超过 30% 的行无法识别，认为格式有问题
+    if (recognizedLines === 0) {
+      errors.push('没有识别到任何对话角色标记');
+    } else if (unrecognizedLines > lines.length * 0.3) {
+      errors.push(`有 ${unrecognizedLines} 行无法识别角色标记（占比 ${Math.round(unrecognizedLines / lines.length * 100)}%）`);
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
   }
 }
