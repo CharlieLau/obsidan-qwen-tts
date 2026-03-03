@@ -61,10 +61,14 @@ export class QwenEngine extends BaseTTSEngine {
           throw new Error(`Qwen TTS API error: ${response.status} - ${errorText}`);
         }
 
-        // Convert response to blob
-        const arrayBuffer = await response.arrayBuffer();
-        const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
-        this.audioUrl = URL.createObjectURL(blob);
+        // Parse JSON response to get audio URL
+        const result = await response.json();
+        if (!result.output || !result.output.audio || !result.output.audio.url) {
+          throw new Error('Invalid API response: missing audio URL');
+        }
+
+        // Use the audio URL directly
+        this.audioUrl = result.output.audio.url;
 
         // Create and setup audio element
         this.audio = new Audio(this.audioUrl);
@@ -124,10 +128,8 @@ export class QwenEngine extends BaseTTSEngine {
   }
 
   private cleanup(): void {
-    if (this.audioUrl) {
-      URL.revokeObjectURL(this.audioUrl);
-      this.audioUrl = null;
-    }
+    // Note: audioUrl is from API, not a blob URL, so no need to revoke
+    this.audioUrl = null;
     if (this.audio) {
       this.audio.src = '';
       this.audio = null;
