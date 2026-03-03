@@ -112,6 +112,7 @@ export class TTSSettingTab extends PluginSettingTab {
 
   private createVoiceListItem(containerEl: HTMLElement, voice: { key: string; value: string }, index: number): void {
     const setting = new Setting(containerEl)
+      .setClass('tts-voice-list-item')
       .addText(text => text
         .setPlaceholder('Key (如 Cherry)')
         .setValue(voice.key)
@@ -135,11 +136,20 @@ export class TTSSettingTab extends PluginSettingTab {
           this.display(); // 重新渲染
         }));
 
-    // 设置样式，让两个输入框并排显示
-    setting.settingEl.style.display = 'grid';
-    setting.settingEl.style.gridTemplateColumns = '1fr 1fr auto';
-    setting.settingEl.style.gap = '10px';
-    setting.settingEl.style.alignItems = 'center';
+    // 移除默认的 setting-item-info（左侧的名称和描述区域）
+    const infoEl = setting.settingEl.querySelector('.setting-item-info');
+    if (infoEl) {
+      infoEl.remove();
+    }
+
+    // 调整 setting-item-control 宽度为 100%
+    const controlEl = setting.settingEl.querySelector('.setting-item-control') as HTMLElement;
+    if (controlEl) {
+      controlEl.style.flexGrow = '1';
+      controlEl.style.display = 'flex';
+      controlEl.style.gap = '10px';
+      controlEl.style.justifyContent = 'flex-start';
+    }
   }
 
   private displayEngineSettings(containerEl: HTMLElement): void {
