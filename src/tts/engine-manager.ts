@@ -3,6 +3,8 @@
 import { Notice } from 'obsidian';
 import { ITTSEngine, EngineType, EngineConfig, Language, EngineStatus } from './engines/base';
 import { WebSpeechEngine } from './engines/web-speech';
+import { OpenAIEngine } from './engines/openai';
+import { QwenEngine } from './engines/qwen';
 
 export class TTSEngineManager {
   private engines: Map<EngineType, ITTSEngine> = new Map();
@@ -15,6 +17,15 @@ export class TTSEngineManager {
     // 初始化 Web Speech API 引擎（默认）
     const webSpeechEngine = new WebSpeechEngine(config);
     this.engines.set('web-speech', webSpeechEngine);
+
+    // 初始化 OpenAI 引擎
+    const openaiEngine = new OpenAIEngine(config);
+    this.engines.set('openai', openaiEngine);
+
+    // 初始化 Qwen 引擎
+    const qwenEngine = new QwenEngine(config);
+    this.engines.set('qwen', qwenEngine);
+
     this.currentEngine = webSpeechEngine;
   }
 
