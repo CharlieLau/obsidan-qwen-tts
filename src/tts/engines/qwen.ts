@@ -32,22 +32,17 @@ export class QwenEngine extends BaseTTSEngine {
         // Clean up previous audio if exists
         this.cleanup();
 
-        // Select voice based on language
-        const voice = language === 'zh-CN' ? 'zhixiaobai' : 'emily';
-
-        // Prepare request body
+        // Prepare request body for qwen3-tts-instruct-flash model
         const requestBody = {
-          model: 'sambert-zhichu-v1',
+          model: 'qwen3-tts-instruct-flash',
           input: {
             text: text
           },
           parameters: {
-            voice: voice,
             format: 'mp3',
-            sample_rate: 16000,
+            sample_rate: 22050,
             volume: 50,
-            speech_rate: this.config.speechRate || 0,
-            pitch_rate: 0
+            speech_rate: Math.round((this.config.speechRate || 1.0) * 100) // Convert to percentage
           }
         };
 
