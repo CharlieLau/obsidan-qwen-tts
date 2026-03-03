@@ -33,9 +33,27 @@ export class QwenEngine extends BaseTTSEngine {
         // Clean up previous audio if exists
         this.cleanup();
 
-        // Select voice based on language and config
-        const voice = this.config.voice || (language === 'zh-CN' ? 'Cherry' : 'Emily');
-        const languageType = language === 'zh-CN' ? 'Chinese' : 'English';
+        // Select voice and language type based on detected language
+        // For Chinese, use Cherry/Lily/Luna/Stella/William/Sam
+        // For English, use Emily/Harry
+        let voice: string;
+        let languageType: string;
+
+        if (language === 'zh-CN') {
+          languageType = 'Chinese';
+          // Use configured voice if it's a Chinese voice, otherwise default to Cherry
+          const chineseVoices = ['Cherry', 'Lily', 'Luna', 'Stella', 'William', 'Sam'];
+          voice = (this.config.voice && chineseVoices.includes(this.config.voice))
+            ? this.config.voice
+            : 'Cherry';
+        } else {
+          languageType = 'English';
+          // Use configured voice if it's an English voice, otherwise default to Emily
+          const englishVoices = ['Emily', 'Harry'];
+          voice = (this.config.voice && englishVoices.includes(this.config.voice))
+            ? this.config.voice
+            : 'Emily';
+        }
 
         // Prepare request body for qwen3-tts-instruct-flash model
         const requestBody = {
@@ -48,6 +66,7 @@ export class QwenEngine extends BaseTTSEngine {
         };
 
         // Call Qwen TTS API using Obsidian's requestUrl to bypass CORS
+        console.log('Qwen TTS request:', requestBody);
         const response = await requestUrl({
           url: this.apiEndpoint,
           method: 'POST',
@@ -58,8 +77,12 @@ export class QwenEngine extends BaseTTSEngine {
           body: JSON.stringify(requestBody)
         });
 
+        console.log('Qwen TTS response status:', response.status);
+        console.log('Qwen TTS response:', response.json);
+
         if (response.status !== 200) {
-          throw new Error(`Qwen TTS API error: ${response.status} - ${response.text}`);
+          console.error('Qwen TTS API error:', response.json);
+          throw new Error(`Qwen TTS API error: ${response.status} - ${JSON.stringify(response.json)}`);
         }
 
         // Parse JSON response to get audio URL
