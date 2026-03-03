@@ -24,6 +24,13 @@ export default class TTSPlugin extends Plugin {
       ...this.getEngineConfig()
     });
 
+    // 初始化当前引擎
+    await this.engineManager.initialize({
+      type: this.settings.currentEngine,
+      speechRate: this.settings.speechRate,
+      ...this.getEngineConfig()
+    });
+
     // 初始化 UI 控制器
     this.controller = new TTSController(this.engineManager);
 
