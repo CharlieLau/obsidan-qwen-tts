@@ -14,6 +14,7 @@ export interface EngineConfig {
   speechRate?: number;
   voice?: string; // For Qwen TTS voice selection
   model?: string; // For Qwen TTS model selection
+  onProgress?: (current: number, total: number) => void; // Progress callback
 }
 
 export interface ITTSEngine {
@@ -23,6 +24,8 @@ export interface ITTSEngine {
   resume(): void;
   stop(): void;
   getStatus(): EngineStatus;
+  getCurrentTime(): number;
+  getDuration(): number;
 }
 
 export abstract class BaseTTSEngine implements ITTSEngine {
@@ -41,5 +44,13 @@ export abstract class BaseTTSEngine implements ITTSEngine {
 
   getStatus(): EngineStatus {
     return this.status;
+  }
+
+  getCurrentTime(): number {
+    return 0;
+  }
+
+  getDuration(): number {
+    return 0;
   }
 }

@@ -19,7 +19,7 @@ export class TTSController {
   private customVoiceToggle: HTMLButtonElement;
   private customVoiceContainer: HTMLElement;
   private customVoiceInput: HTMLInputElement;
-  private engineManager: TTSEngineManager;
+  public engineManager: TTSEngineManager;
   private contentParser: ContentParser;
   private plugin: TTSPlugin;
   private currentAudio: HTMLAudioElement | null = null;

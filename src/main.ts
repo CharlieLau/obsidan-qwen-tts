@@ -17,22 +17,27 @@ export default class TTSPlugin extends Plugin {
     // 加载设置
     await this.loadSettings();
 
+    // 初始化 UI 控制器（需要先创建，因为引擎需要它的进度回调）
+    this.controller = new TTSController(this.engineManager, this);
+
     // 初始化引擎管理器
     this.engineManager = new TTSEngineManager({
       type: this.settings.currentEngine,
       speechRate: this.settings.speechRate,
+      onProgress: (current, total) => this.controller.updateProgress(current, total),
       ...this.getEngineConfig()
     });
+
+    // 更新 controller 的 engineManager 引用
+    this.controller.engineManager = this.engineManager;
 
     // 初始化当前引擎
     await this.engineManager.initialize({
       type: this.settings.currentEngine,
       speechRate: this.settings.speechRate,
+      onProgress: (current, total) => this.controller.updateProgress(current, total),
       ...this.getEngineConfig()
     });
-
-    // 初始化 UI 控制器
-    this.controller = new TTSController(this.engineManager, this);
 
     // 注册设置面板
     this.addSettingTab(new TTSSettingTab(this.app, this));
@@ -111,6 +116,7 @@ export default class TTSPlugin extends Plugin {
     await this.engineManager.initialize({
       type: this.settings.currentEngine,
       speechRate: this.settings.speechRate,
+      onProgress: (current, total) => this.controller.updateProgress(current, total),
       ...this.getEngineConfig()
     });
   }

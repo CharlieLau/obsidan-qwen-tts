@@ -33,6 +33,8 @@ export class TTSEngineManager {
     console.log('Initializing TTS engine:', config.type);
     const engine = this.engines.get(config.type);
     if (engine) {
+      // Store the config for later use
+      this.config = config;
       await engine.initialize(config);
       this.currentEngine = engine;
       console.log('TTS engine initialized successfully:', config.type);
@@ -43,6 +45,8 @@ export class TTSEngineManager {
       this.currentEngine = this.engines.get('web-speech')!;
     }
   }
+
+  private config: EngineConfig;
 
   async speakSegments(segments: Array<{ text: string; language: Language }>): Promise<void> {
     this.segments = segments;

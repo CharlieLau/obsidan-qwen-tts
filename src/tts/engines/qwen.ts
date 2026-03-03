@@ -8,6 +8,7 @@ export class QwenEngine extends BaseTTSEngine {
   private model: string = 'qwen3-tts-instruct-flash';
   private audio: HTMLAudioElement | null = null;
   private audioUrl: string | null = null;
+  private progressInterval: number | null = null;
   private readonly apiEndpoint = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation';
 
   constructor(config: EngineConfig) {
@@ -94,6 +95,7 @@ export class QwenEngine extends BaseTTSEngine {
 
         this.audio.onplay = () => {
           this.status = 'playing';
+          this.startProgressTracking();
         };
 
         this.audio.onended = () => {
@@ -123,6 +125,7 @@ export class QwenEngine extends BaseTTSEngine {
     if (this.audio && this.status === 'playing') {
       this.audio.pause();
       this.status = 'paused';
+      this.stopProgressTracking();
     }
   }
 
@@ -130,6 +133,7 @@ export class QwenEngine extends BaseTTSEngine {
     if (this.audio && this.status === 'paused') {
       this.audio.play();
       this.status = 'playing';
+      this.startProgressTracking();
     }
   }
 
@@ -139,6 +143,7 @@ export class QwenEngine extends BaseTTSEngine {
       this.audio.currentTime = 0;
     }
     this.status = 'idle';
+    this.stopProgressTracking();
     this.cleanup();
   }
 
@@ -149,5 +154,29 @@ export class QwenEngine extends BaseTTSEngine {
       this.audio.src = '';
       this.audio = null;
     }
+  }
+
+  private startProgressTracking(): void {
+    this.stopProgressTracking();
+    this.progressInterval = window.setInterval(() => {
+      if (this.audio && this.config.onProgress) {
+        this.config.onProgress(this.audio.currentTime, this.audio.duration || 0);
+      }
+    }, 100); // Update every 100ms
+  }
+
+  private stopProgressTracking(): void {
+    if (this.progressInterval !== null) {
+      clearInterval(this.progressInterval);
+      this.progressInterval = null;
+    }
+  }
+
+  getCurrentTime(): number {
+    return this.audio?.currentTime || 0;
+  }
+
+  getDuration(): number {
+    return this.audio?.duration || 0;
   }
 }
