@@ -3,3 +3,7 @@ main.js.map
 *.log
 .DS_Store
 data.json
+
+# Release files (upload to GitHub Release, don't commit)
+RELEASE_NOTES_*.md
+*.zip
