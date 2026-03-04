@@ -20,8 +20,6 @@ export default class TTSPlugin extends Plugin {
   multiVoicePlayer: MultiVoicePlayer;
 
   async onload() {
-    console.log('Loading TTS Plugin');
-
     // 加载设置
     await this.loadSettings();
 
@@ -96,8 +94,6 @@ export default class TTSPlugin extends Plugin {
   }
 
   onunload() {
-    console.log('Unloading TTS Plugin');
-
     // 停止播放
     if (this.engineManager) {
       this.engineManager.stop();

@@ -335,7 +335,6 @@ export class TTSController {
   private handleProgressClick(e: MouseEvent): void {
     // TODO: 实现进度跳转功能
     // 需要在引擎管理器中添加 seek 方法
-    console.log('Progress click:', e);
   }
 
   public updateProgress(current: number, total: number): void {
@@ -447,9 +446,7 @@ export class TTSController {
           }
 
           // 验证脚本
-          console.log('Generated dialogue script:', dialogueScript);
           const validation = this.plugin.dialogueParser.validate(dialogueScript);
-          console.log('Validation result:', validation);
 
           if (!validation.isValid) {
             // 保存脚本以便调试

@@ -30,14 +30,12 @@ export class TTSEngineManager {
   }
 
   async initialize(config: EngineConfig): Promise<void> {
-    console.log('Initializing TTS engine:', config.type);
     const engine = this.engines.get(config.type);
     if (engine) {
       // Store the config for later use
       this.config = config;
       await engine.initialize(config);
       this.currentEngine = engine;
-      console.log('TTS engine initialized successfully:', config.type);
     } else {
       // 如果引擎不存在，回退到 Web Speech API
       console.warn('Engine not found:', config.type, 'Falling back to web-speech');

@@ -39,13 +39,8 @@ export class QwenEngine extends BaseTTSEngine {
         // Select voice and language type based on detected language
         // All voices support both Chinese and English
         // Available voices: Cherry, Serena, Ethan, Chelsie, Momo, Vivian, Moon, Maia, Kai, Nofish, Bella
-        console.log('Detected language:', language);
-        console.log('Configured voice:', this.config.voice);
-
         const voice = this.config.voice || 'Cherry'; // Default to Cherry
         const languageType = language === 'zh-CN' ? 'Chinese' : 'English';
-
-        console.log('Using voice:', voice, 'for language:', languageType);
 
         // Prepare request body for configured model
         const requestBody = {
@@ -58,7 +53,6 @@ export class QwenEngine extends BaseTTSEngine {
         };
 
         // Call Qwen TTS API using Obsidian's requestUrl to bypass CORS
-        console.log('Qwen TTS request:', requestBody);
         const response = await requestUrl({
           url: this.apiEndpoint,
           method: 'POST',
@@ -68,9 +62,6 @@ export class QwenEngine extends BaseTTSEngine {
           },
           body: JSON.stringify(requestBody)
         });
-
-        console.log('Qwen TTS response status:', response.status);
-        console.log('Qwen TTS response:', response.json);
 
         if (response.status !== 200) {
           console.error('Qwen TTS API error:', response.json);
