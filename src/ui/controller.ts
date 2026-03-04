@@ -7,6 +7,7 @@ import { EngineStatus } from '../tts/engines/base';
 import TTSPlugin from '../main';
 import { DialogueProgressModal } from '../dialogue/dialogue-progress-modal';
 import { DialogueOptionsModal } from '../dialogue/dialogue-options-modal';
+import { DialogueAudioCache } from '../dialogue/dialogue-audio-cache';
 
 export class TTSController {
   private controlBar: HTMLElement | null = null;

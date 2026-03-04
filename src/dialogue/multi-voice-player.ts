@@ -9,6 +9,9 @@ export class MultiVoicePlayer {
   private currentIndex: number = 0;
   private dialogueLines: DialogueLine[] = [];
   private isPlaying: boolean = false;
+  private currentAudio: HTMLAudioElement | null = null;
+  private isPaused: boolean = false;
+  private mergedAudioUrl: string | null = null;
 
   constructor(engineManager: TTSEngineManager) {
     this.engineManager = engineManager;
@@ -17,8 +20,9 @@ export class MultiVoicePlayer {
   /**
    * 加载对话脚本准备播放
    */
-  async loadDialogue(lines: DialogueLine[]): Promise<void> {
+  async loadDialogue(lines: DialogueLine[], mergedAudioUrl?: string): Promise<void> {
     this.dialogueLines = lines;
+    this.mergedAudioUrl = mergedAudioUrl || null;
     this.currentIndex = 0;
   }
 
@@ -31,7 +35,37 @@ export class MultiVoicePlayer {
     }
 
     this.isPlaying = true;
-    await this.playNext();
+
+    // 如果有合并的音频，直接播放
+    if (this.mergedAudioUrl) {
+      await this.playMergedAudio();
+    } else {
+      // 否则逐句播放
+      await this.playNext();
+    }
+  }
+
+  /**
+   * 播放合并后的完整音频
+   */
+  private async playMergedAudio(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.currentAudio = new Audio(this.mergedAudioUrl!);
+
+      this.currentAudio.onended = () => {
+        this.isPlaying = false;
+        this.cleanup();
+        resolve();
+      };
+
+      this.currentAudio.onerror = (event) => {
+        this.isPlaying = false;
+        this.cleanup();
+        reject(new Error(`音频播放错误: ${event}`));
+      };
+
+      this.currentAudio.play().catch(reject);
+    });
   }
 
   /**
@@ -40,19 +74,54 @@ export class MultiVoicePlayer {
   private async playNext(): Promise<void> {
     if (!this.isPlaying || this.currentIndex >= this.dialogueLines.length) {
       this.isPlaying = false;
+      this.cleanup();
       return;
     }
 
-    const line = this.dialogueLines[this.currentIndex];
+    // 如果有缓存的音频，使用缓存
+    if (this.audioCache.length > 0 && this.audioCache[this.currentIndex]) {
+      await this.playFromCache();
+    } else {
+      // 否则实时生成
+      await this.playRealtime();
+    }
+  }
 
-    // 检测语言
+  /**
+   * 从缓存播放
+   */
+  private async playFromCache(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const cacheEntry = this.audioCache[this.currentIndex];
+
+      // 创建音频元素
+      this.currentAudio = new Audio(cacheEntry.url);
+
+      this.currentAudio.onended = () => {
+        this.cleanup();
+        this.currentIndex++;
+        this.playNext().then(resolve).catch(reject);
+      };
+
+      this.currentAudio.onerror = (event) => {
+        this.cleanup();
+        reject(new Error(`Audio playback error: ${event}`));
+      };
+
+      // 开始播放
+      this.currentAudio.play().catch(reject);
+    });
+  }
+
+  /**
+   * 实时生成播放
+   */
+  private async playRealtime(): Promise<void> {
+    const line = this.dialogueLines[this.currentIndex];
     const language = this.detectLanguage(line.content);
 
-    // 播放当前句（使用指定音色）
     try {
       await this.engineManager.speakWithVoice(line.content, language, line.voice);
-
-      // 播放完成，继续下一句
       this.currentIndex++;
       await this.playNext();
     } catch (error) {
@@ -62,11 +131,28 @@ export class MultiVoicePlayer {
   }
 
   /**
+   * 清理当前音频
+   */
+  private cleanup(): void {
+    if (this.currentAudio) {
+      this.currentAudio.pause();
+      this.currentAudio.src = '';
+      this.currentAudio = null;
+    }
+  }
+
+  /**
    * 暂停播放
    */
   pause(): void {
     this.isPlaying = false;
-    this.engineManager.pause();
+    this.isPaused = true;
+
+    if (this.currentAudio) {
+      this.currentAudio.pause();
+    } else {
+      this.engineManager.pause();
+    }
   }
 
   /**
@@ -75,7 +161,13 @@ export class MultiVoicePlayer {
   resume(): void {
     if (this.currentIndex < this.dialogueLines.length) {
       this.isPlaying = true;
-      this.engineManager.resume();
+      this.isPaused = false;
+
+      if (this.currentAudio) {
+        this.currentAudio.play();
+      } else {
+        this.engineManager.resume();
+      }
     }
   }
 
@@ -84,7 +176,10 @@ export class MultiVoicePlayer {
    */
   stop(): void {
     this.isPlaying = false;
+    this.isPaused = false;
     this.currentIndex = 0;
+
+    this.cleanup();
     this.engineManager.stop();
   }
 
@@ -92,8 +187,13 @@ export class MultiVoicePlayer {
    * 获取播放状态
    */
   getStatus(): EngineStatus {
-    // 对话播放器的状态与引擎状态一致
-    return this.engineManager.getStatus();
+    if (this.isPlaying) {
+      return 'playing';
+    } else if (this.isPaused) {
+      return 'paused';
+    } else {
+      return 'idle';
+    }
   }
 
   /**

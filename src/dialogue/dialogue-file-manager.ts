@@ -1,6 +1,7 @@
 // src/dialogue/dialogue-file-manager.ts
 
 import { App } from 'obsidian';
+import { AudioCacheEntry } from './dialogue-audio-cache';
 
 export class DialogueFileManager {
   private app: App;
@@ -38,21 +39,36 @@ export class DialogueFileManager {
   /**
    * 保存对话脚本
    */
-  async saveDialogue(originalPath: string, script: string): Promise<string> {
+  async saveDialogue(
+    originalPath: string,
+    script: string,
+    audioCache?: AudioCacheEntry[]
+  ): Promise<string> {
     // 确保对话目录存在
     await this.ensureDialogueFolderExists();
 
     const dialoguePath = this.getDialoguePath(originalPath);
 
     // 添加元信息
-    const content = `---
+    let frontmatter = `---
 generated: ${new Date().toISOString()}
 source: ${originalPath}
 sourceName: ${originalPath.split('/').pop()}
-type: dialogue
----
+type: dialogue`;
 
-${script}`;
+    // 如果有音频缓存，添加到 frontmatter
+    if (audioCache && audioCache.length > 0) {
+      frontmatter += `\naudioCache:\n`;
+      audioCache.forEach((entry, index) => {
+        frontmatter += `  - url: "${entry.url}"\n`;
+        frontmatter += `    duration: ${entry.duration}\n`;
+        frontmatter += `    timestamp: ${entry.timestamp}\n`;
+      });
+    }
+
+    frontmatter += `---\n\n`;
+
+    const content = frontmatter + script;
 
     // 使用 Obsidian API 写入文件
     await this.app.vault.adapter.write(dialoguePath, content);
@@ -63,20 +79,75 @@ ${script}`;
   /**
    * 读取对话脚本
    */
-  async loadDialogue(originalPath: string): Promise<string | null> {
+  async loadDialogue(originalPath: string): Promise<{
+    script: string;
+    audioCache?: AudioCacheEntry[];
+  } | null> {
     const dialoguePath = this.getDialoguePath(originalPath);
 
     try {
       const content = await this.app.vault.adapter.read(dialoguePath);
 
-      // 移除 frontmatter
-      const withoutFrontmatter = content.replace(/^---[\s\S]*?---\s*/m, '');
+      // 解析 frontmatter
+      const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
+      let audioCache: AudioCacheEntry[] | undefined;
 
-      return withoutFrontmatter;
+      if (frontmatterMatch) {
+        const frontmatterText = frontmatterMatch[1];
+
+        // 解析 audioCache（简单的 YAML 解析）
+        const audioCacheMatch = frontmatterText.match(/audioCache:\n((?:  - [\s\S]*?)+)/);
+        if (audioCacheMatch) {
+          audioCache = this.parseAudioCache(audioCacheMatch[1]);
+        }
+      }
+
+      // 移除 frontmatter
+      const script = content.replace(/^---[\s\S]*?---\s*/m, '');
+
+      return { script, audioCache };
     } catch (error) {
       // 文件不存在或读取失败
       return null;
     }
+  }
+
+  /**
+   * 解析音频缓存（简单的 YAML 解析）
+   */
+  private parseAudioCache(yamlText: string): AudioCacheEntry[] {
+    const entries: AudioCacheEntry[] = [];
+    const lines = yamlText.split('\n');
+
+    let currentEntry: Partial<AudioCacheEntry> = {};
+
+    for (const line of lines) {
+      const urlMatch = line.match(/url: "(.+)"/);
+      if (urlMatch) {
+        if (currentEntry.url) {
+          entries.push(currentEntry as AudioCacheEntry);
+          currentEntry = {};
+        }
+        currentEntry.url = urlMatch[1];
+      }
+
+      const durationMatch = line.match(/duration: ([\d.]+)/);
+      if (durationMatch) {
+        currentEntry.duration = parseFloat(durationMatch[1]);
+      }
+
+      const timestampMatch = line.match(/timestamp: (\d+)/);
+      if (timestampMatch) {
+        currentEntry.timestamp = parseInt(timestampMatch[1]);
+      }
+    }
+
+    // 添加最后一个条目
+    if (currentEntry.url) {
+      entries.push(currentEntry as AudioCacheEntry);
+    }
+
+    return entries;
   }
 
   /**
