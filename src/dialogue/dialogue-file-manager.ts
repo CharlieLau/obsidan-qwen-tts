@@ -44,15 +44,44 @@ export class DialogueFileManager {
 
     const dialoguePath = this.getDialoguePath(originalPath);
 
-    // 添加元信息
+    // 统计对话信息
+    const lines = script.split('\n').filter(line => line.trim().length > 0);
+    const dialogueCount = lines.filter(line => line.startsWith('[')).length;
+    const charCount = script.length;
+
+    // 添加元信息和格式化内容
     const content = `---
 generated: ${new Date().toISOString()}
 source: ${originalPath}
 sourceName: ${originalPath.split('/').pop()}
 type: dialogue
+dialogueLines: ${dialogueCount}
+characters: ${charCount}
 ---
 
-${script}`;
+# 对话脚本
+
+> 本文件由 AI 自动生成，用于多人对话式 TTS 播放
+>
+> 📄 源文件：\`${originalPath}\`
+> 🎭 对话行数：${dialogueCount}
+> 📝 字符数：${charCount}
+> 🕐 生成时间：${new Date().toLocaleString('zh-CN')}
+
+---
+
+## 对话内容
+
+${script}
+
+---
+
+## 使用说明
+
+- 本文件对应的音频缓存位于：\`对话记录/.audio/\`
+- 可直接编辑对话内容，重新生成时会覆盖
+- 格式：\`[角色名]: 对话内容\`
+`;
 
     // 使用 Obsidian API 写入文件
     await this.app.vault.adapter.write(dialoguePath, content);

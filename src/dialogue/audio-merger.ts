@@ -83,6 +83,9 @@ export class AudioMerger {
         text: line.content,
         voice: line.voice,
         language_type: language
+      },
+      parameters: {
+        format: 'wav'  // 使用 WAV 格式,支持直接二进制拼接
       }
     };
 
@@ -121,24 +124,64 @@ export class AudioMerger {
   }
 
   /**
-   * 合并音频块（简单拼接）
-   * 注意：这是简单的二进制拼接，适用于相同格式的音频文件
+   * 合并 WAV 音频块
+   * WAV 格式可以通过去除后续文件的头部来合并
    */
   private async mergeAudioChunks(chunks: ArrayBuffer[]): Promise<ArrayBuffer> {
-    // 计算总长度
-    const totalLength = chunks.reduce((sum, chunk) => sum + chunk.byteLength, 0);
-
-    // 创建合并后的 buffer
-    const merged = new Uint8Array(totalLength);
-    let offset = 0;
-
-    // 拼接所有音频数据
-    for (const chunk of chunks) {
-      merged.set(new Uint8Array(chunk), offset);
-      offset += chunk.byteLength;
+    if (chunks.length === 0) {
+      throw new Error('No audio chunks to merge');
     }
 
+    if (chunks.length === 1) {
+      return chunks[0];
+    }
+
+    // WAV 文件头部固定为 44 字节
+    const WAV_HEADER_SIZE = 44;
+
+    // 第一个文件保留完整内容（包含头部）
+    const firstChunk = new Uint8Array(chunks[0]);
+
+    // 计算所有音频数据的总长度（去除后续文件的头部）
+    let totalDataSize = firstChunk.byteLength;
+    for (let i = 1; i < chunks.length; i++) {
+      totalDataSize += chunks[i].byteLength - WAV_HEADER_SIZE;
+    }
+
+    // 创建合并后的 buffer
+    const merged = new Uint8Array(totalDataSize);
+
+    // 复制第一个文件的完整内容
+    merged.set(firstChunk, 0);
+    let offset = firstChunk.byteLength;
+
+    // 复制后续文件的音频数据（跳过头部）
+    for (let i = 1; i < chunks.length; i++) {
+      const chunk = new Uint8Array(chunks[i]);
+      const audioData = chunk.subarray(WAV_HEADER_SIZE);
+      merged.set(audioData, offset);
+      offset += audioData.byteLength;
+    }
+
+    // 更新 WAV 文件头部的大小信息
+    this.updateWavHeader(merged, totalDataSize);
+
     return merged.buffer;
+  }
+
+  /**
+   * 更新 WAV 文件头部的大小信息
+   */
+  private updateWavHeader(wavData: Uint8Array, totalSize: number): void {
+    const view = new DataView(wavData.buffer);
+
+    // 更新文件大小（ChunkSize at offset 4）
+    // ChunkSize = 整个文件大小 - 8
+    view.setUint32(4, totalSize - 8, true);
+
+    // 更新数据块大小（Subchunk2Size at offset 40）
+    // Subchunk2Size = 音频数据大小
+    view.setUint32(40, totalSize - 44, true);
   }
 
   /**
@@ -146,8 +189,8 @@ export class AudioMerger {
    */
   private getAudioPath(dialoguePath: string): string {
     // 从对话文件路径生成音频文件路径
-    // 例如：对话记录/test-document-对话.md -> 对话记录/.audio/test-document-对话.mp3
-    const fileName = dialoguePath.split('/').pop()?.replace('.md', '.mp3') || 'audio.mp3';
+    // 例如：对话记录/test-document-对话.md -> 对话记录/.audio/test-document-对话.wav
+    const fileName = dialoguePath.split('/').pop()?.replace('.md', '.wav') || 'audio.wav';
     return `${this.audioFolder}/${fileName}`;
   }
 
@@ -167,7 +210,7 @@ export class AudioMerger {
     const audioData = await this.app.vault.adapter.readBinary(audioPath);
 
     // 创建 Blob URL
-    const blob = new Blob([audioData], { type: 'audio/mpeg' });
+    const blob = new Blob([audioData], { type: 'audio/wav' });
     const url = URL.createObjectURL(blob);
 
     return url;

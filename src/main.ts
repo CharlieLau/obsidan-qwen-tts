@@ -1,6 +1,6 @@
 // src/main.ts
 
-import { Plugin, MarkdownView } from 'obsidian';
+import { Plugin, MarkdownView, Notice } from 'obsidian';
 import { TTSSettings, DEFAULT_SETTINGS, TTSSettingTab } from './settings';
 import { TTSEngineManager } from './tts/engine-manager';
 import { TTSController } from './ui/controller';
@@ -48,8 +48,16 @@ export default class TTSPlugin extends Plugin {
     });
 
     // 初始化对话模块
-    this.dialogueGenerator = new DialogueGenerator(this.settings.qwen.apiKey);
-    this.dialogueParser = new DialogueParser();
+    this.dialogueGenerator = new DialogueGenerator(
+      this.settings.qwen.apiKey,
+      this.settings.qwen.dialogueModel,
+      this.settings.qwen.dialogueMode
+    );
+    this.dialogueParser = new DialogueParser(
+      this.settings.qwen.dialogueMode,
+      this.settings.qwen.educationVoices,
+      this.settings.qwen.podcastVoices
+    );
     this.dialogueFileManager = new DialogueFileManager(this.app);
     this.multiVoicePlayer = new MultiVoicePlayer(this.engineManager);
 
@@ -105,11 +113,28 @@ export default class TTSPlugin extends Plugin {
     const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 
     // 切换文档时停止播放
+    let wasStopped = false;
+
     if (this.engineManager) {
       const status = this.engineManager.getStatus();
       if (status === 'playing' || status === 'paused') {
         this.engineManager.stop();
+        wasStopped = true;
       }
+    }
+
+    // 停止对话模式播放
+    if (this.multiVoicePlayer) {
+      const dialogueStatus = this.multiVoicePlayer.getStatus();
+      if (dialogueStatus === 'playing' || dialogueStatus === 'paused') {
+        this.multiVoicePlayer.stop();
+        wasStopped = true;
+      }
+    }
+
+    // 提醒用户
+    if (wasStopped) {
+      new Notice('已自动停止播放');
     }
 
     if (view) {
@@ -128,6 +153,20 @@ export default class TTSPlugin extends Plugin {
     // 兼容旧版本：如果 voiceList 不存在，使用默认值
     if (!this.settings.qwen.voiceList || this.settings.qwen.voiceList.length === 0) {
       this.settings.qwen.voiceList = DEFAULT_SETTINGS.qwen.voiceList;
+    }
+
+    // 兼容旧版本：如果对话模式配置不存在，使用默认值
+    if (!this.settings.qwen.dialogueMode) {
+      this.settings.qwen.dialogueMode = DEFAULT_SETTINGS.qwen.dialogueMode;
+    }
+    if (!this.settings.qwen.educationVoices) {
+      this.settings.qwen.educationVoices = DEFAULT_SETTINGS.qwen.educationVoices;
+    }
+    if (!this.settings.qwen.podcastVoices) {
+      this.settings.qwen.podcastVoices = DEFAULT_SETTINGS.qwen.podcastVoices;
+    }
+    if (!this.settings.qwen.dialogueModel) {
+      this.settings.qwen.dialogueModel = DEFAULT_SETTINGS.qwen.dialogueModel;
     }
   }
 

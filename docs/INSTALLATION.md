@@ -47,7 +47,7 @@ ln -s /Users/liuqingqing05/work/obsidan-qwen-tts YOUR_VAULT_PATH/.obsidian/plugi
 3. 选择 TTS 引擎：**通义千问 TTS**
 4. 输入你的 API Key
    - 从 [阿里云 DashScope](https://dashscope.console.aliyun.com/) 获取
-5. 选择模型：`qwen3-tts-instruct-flash`（推荐）或 `qwen-long`
+5. 选择模型：`qwen3-tts-instruct-flash`（TTS 推荐）
 6. 保存设置
 
 ## 测试对话模式

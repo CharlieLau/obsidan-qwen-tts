@@ -12,9 +12,17 @@ export class MultiVoicePlayer {
   private currentAudio: HTMLAudioElement | null = null;
   private isPaused: boolean = false;
   private mergedAudioUrl: string | null = null;
+  private onProgressUpdate?: (current: number, total: number) => void;
 
   constructor(engineManager: TTSEngineManager) {
     this.engineManager = engineManager;
+  }
+
+  /**
+   * 设置进度更新回调
+   */
+  setProgressCallback(callback: (current: number, total: number) => void): void {
+    this.onProgressUpdate = callback;
   }
 
   /**
@@ -51,6 +59,17 @@ export class MultiVoicePlayer {
   private async playMergedAudio(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.currentAudio = new Audio(this.mergedAudioUrl!);
+
+      // 监听时间更新，更新进度条
+      this.currentAudio.ontimeupdate = () => {
+        if (this.currentAudio && this.onProgressUpdate) {
+          const current = this.currentAudio.currentTime;
+          const total = this.currentAudio.duration;
+          if (!isNaN(current) && !isNaN(total) && total > 0) {
+            this.onProgressUpdate(current, total);
+          }
+        }
+      };
 
       this.currentAudio.onended = () => {
         this.isPlaying = false;
@@ -96,6 +115,10 @@ export class MultiVoicePlayer {
    */
   private cleanup(): void {
     if (this.currentAudio) {
+      // 移除所有事件监听器
+      this.currentAudio.ontimeupdate = null;
+      this.currentAudio.onended = null;
+      this.currentAudio.onerror = null;
       this.currentAudio.pause();
       this.currentAudio.src = '';
       this.currentAudio = null;

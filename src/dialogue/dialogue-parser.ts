@@ -1,21 +1,77 @@
 // src/dialogue/dialogue-parser.ts
 
-import { DialogueLine, DialogueRole, DialogueValidation } from './types';
+import { DialogueLine, DialogueRole, DialogueValidation, DialogueMode } from './types';
 
 export class DialogueParser {
-  // 角色到音色的映射
-  private readonly voiceMapping: Record<DialogueRole, string> = {
-    'host': 'Ethan',      // 主讲人 - 稳重男声
-    'curious': 'Cherry',  // 好奇学生 - 活泼女声
-    'critical': 'Serena'  // 批判学生 - 理性女声
+  private mode: DialogueMode;
+  private educationVoiceMapping: Record<string, string>;
+  private podcastVoiceMapping: Record<string, string>;
+
+  constructor(
+    mode: DialogueMode = 'education',
+    educationVoices?: { host: string; curious: string; critical: string },
+    podcastVoices?: { host1: string; host2: string }
+  ) {
+    this.mode = mode;
+    this.educationVoiceMapping = educationVoices || {
+      'host': 'Ethan',
+      'curious': 'Cherry',
+      'critical': 'Serena'
+    };
+    this.podcastVoiceMapping = podcastVoices || {
+      'host1': 'Moon',
+      'host2': 'Maia'
+    };
+  }
+
+  /**
+   * 设置对话模式
+   */
+  setMode(mode: DialogueMode): void {
+    this.mode = mode;
+  }
+
+  /**
+   * 更新音色映射
+   */
+  updateVoiceMapping(
+    educationVoices?: { host: string; curious: string; critical: string },
+    podcastVoices?: { host1: string; host2: string }
+  ): void {
+    if (educationVoices) {
+      this.educationVoiceMapping = educationVoices;
+    }
+    if (podcastVoices) {
+      this.podcastVoiceMapping = podcastVoices;
+    }
+  }
+
+  // 教育模式：角色标记的正则表达式（容忍空格）
+  private readonly educationRolePatterns: Record<string, RegExp> = {
+    'host': /^\[\s*主讲人\s*\]\s*:\s*/,
+    'curious': /^\[\s*好奇学生\s*\]\s*:\s*/,
+    'critical': /^\[\s*批判学生\s*\]\s*:\s*/
   };
 
-  // 角色标记的正则表达式
-  private readonly rolePatterns: Record<DialogueRole, RegExp> = {
-    'host': /^\[主讲人\]:\s*/,
-    'curious': /^\[好奇学生\]:\s*/,
-    'critical': /^\[批判学生\]:\s*/
+  // 播客模式：角色标记的正则表达式（容忍空格）
+  private readonly podcastRolePatterns: Record<string, RegExp> = {
+    'host1': /^\[\s*主播\s*A\s*\]\s*:\s*/,
+    'host2': /^\[\s*主播\s*B\s*\]\s*:\s*/
   };
+
+  /**
+   * 获取当前模式的角色映射
+   */
+  private getVoiceMapping(): Record<string, string> {
+    return this.mode === 'podcast' ? this.podcastVoiceMapping : this.educationVoiceMapping;
+  }
+
+  /**
+   * 获取当前模式的角色模式
+   */
+  private getRolePatterns(): Record<string, RegExp> {
+    return this.mode === 'podcast' ? this.podcastRolePatterns : this.educationRolePatterns;
+  }
 
   /**
    * 解析对话脚本
@@ -23,16 +79,18 @@ export class DialogueParser {
   parse(script: string): DialogueLine[] {
     const lines = script.split('\n').filter(line => line.trim());
     const dialogueLines: DialogueLine[] = [];
+    const voiceMapping = this.getVoiceMapping();
+    const rolePatterns = this.getRolePatterns();
 
     for (const line of lines) {
       // 识别角色
-      let role: DialogueRole | null = null;
+      let role: string | null = null;
       let content = line;
 
       // 尝试匹配每个角色
-      for (const [roleKey, pattern] of Object.entries(this.rolePatterns)) {
+      for (const [roleKey, pattern] of Object.entries(rolePatterns)) {
         if (pattern.test(line)) {
-          role = roleKey as DialogueRole;
+          role = roleKey;
           content = line.replace(pattern, '');
           break;
         }
@@ -41,9 +99,9 @@ export class DialogueParser {
       // 如果识别到角色，添加到结果
       if (role && content.trim()) {
         dialogueLines.push({
-          role,
+          role: role as DialogueRole,
           content: content.trim(),
-          voice: this.voiceMapping[role]
+          voice: voiceMapping[role]
         });
       }
     }
@@ -57,6 +115,7 @@ export class DialogueParser {
   validate(script: string): DialogueValidation {
     const errors: string[] = [];
     const lines = script.split('\n').filter(line => line.trim());
+    const rolePatterns = this.getRolePatterns();
 
     // 检查是否有对话内容
     if (lines.length === 0) {
@@ -69,7 +128,7 @@ export class DialogueParser {
     let recognizedLines = 0;
 
     for (const line of lines) {
-      const hasRole = Object.values(this.rolePatterns).some(
+      const hasRole = Object.values(rolePatterns).some(
         pattern => pattern.test(line)
       );
 

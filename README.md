@@ -1,20 +1,22 @@
-# Obsidian TTS Plugin
+# Voice Notes - AI Dialogue
 
-一个功能强大的 Obsidian 文本转语音（Text-to-Speech）插件，支持多种 TTS 引擎，智能解析 Markdown 内容，提供流畅的朗读体验。
+🎙️ 将你的 Obsidian 笔记转化为生动的 AI 对话！支持多音色 TTS、NotebookLM 风格的对话式学习，让知识"听"起来更有趣。
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.0-blue)
 ![Obsidian](https://img.shields.io/badge/obsidian-%3E%3D0.15.0-purple)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## ✨ 特性
 
 ### 🎯 核心功能
-- **多引擎支持**：Web Speech API、通义千问 TTS、OpenAI TTS（阿里云、腾讯云待完善）
-- **智能内容解析**：自动处理 Markdown 语法，过滤无意义内容
-- **实时进度显示**：进度条实时更新，显示当前播放时间和总时长
-- **音色管理**：支持 11+ 种预设音色，可自定义添加音色配置
-- **自动语言检测**：自动识别中英文，切换对应语音
-- **💬 对话模式**（NEW）：AI 生成三人对话，NotebookLM 式学习体验
+- **🎙️ AI 对话生成**：将笔记转换为多人对话，NotebookLM 式学习体验
+  - 📚 教育模式：三人课堂（主讲人 + 两位学生）
+  - 🎧 播客模式：双人闲聊（轻松有趣的博客风格）
+- **🎵 多音色 TTS**：支持 11+ 种预设音色，每个角色独立配置
+- **🔄 多引擎支持**：通义千问 TTS、Web Speech API、OpenAI TTS
+- **📝 智能解析**：自动处理 Markdown 语法，过滤无意义内容
+- **⚡ 音频缓存**：WAV 格式合并缓存，秒速播放
+- **📊 实时进度**：进度条实时更新，显示播放时间
 
 ### 🎨 界面设计
 - **紧凑单行布局**：不占用过多笔记空间

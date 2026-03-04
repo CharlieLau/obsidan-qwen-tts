@@ -73,10 +73,45 @@ export class TTSController {
     this.dialogueButton.title = '对话模式';
     this.dialogueButton.onclick = () => this.handleDialogue(view);
 
+    // 创建对话模式选择器
+    const dialogueModeSelector = document.createElement('select');
+    dialogueModeSelector.addClass('tts-dialogue-mode-select');
+    dialogueModeSelector.title = '对话模式';
+
+    const educationOption = document.createElement('option');
+    educationOption.value = 'education';
+    educationOption.textContent = '📚 教育';
+
+    const podcastOption = document.createElement('option');
+    podcastOption.value = 'podcast';
+    podcastOption.textContent = '🎙️ 播客';
+
+    dialogueModeSelector.appendChild(educationOption);
+    dialogueModeSelector.appendChild(podcastOption);
+    dialogueModeSelector.value = this.plugin.settings.qwen.dialogueMode;
+
+    dialogueModeSelector.onchange = async () => {
+      const mode = dialogueModeSelector.value as 'education' | 'podcast';
+      this.plugin.settings.qwen.dialogueMode = mode;
+      await this.plugin.saveSettings();
+
+      // 更新 Generator 和 Parser 的模式
+      this.plugin.dialogueGenerator.setMode(mode);
+      this.plugin.dialogueParser.setMode(mode);
+      this.plugin.dialogueParser.updateVoiceMapping(
+        this.plugin.settings.qwen.educationVoices,
+        this.plugin.settings.qwen.podcastVoices
+      );
+
+      // 更新按钮提示
+      this.dialogueButton.title = mode === 'education' ? '对话模式（教育）' : '对话模式（播客）';
+    };
+
     mainControls.appendChild(this.startButton);
     mainControls.appendChild(this.pauseButton);
     mainControls.appendChild(this.stopButton);
     mainControls.appendChild(this.dialogueButton);
+    mainControls.appendChild(dialogueModeSelector);
 
     // 创建状态文本（隐藏，仅在错误时显示）
     this.statusText = document.createElement('span');
@@ -380,8 +415,11 @@ export class TTSController {
       }
 
       if (shouldGenerate) {
-        // 显示进度 Modal
-        const progressModal = new DialogueProgressModal(this.plugin.app);
+        // 显示进度 Modal，带取消回调
+        let cancelled = false;
+        const progressModal = new DialogueProgressModal(this.plugin.app, () => {
+          cancelled = true;
+        });
         progressModal.open();
 
         try {
@@ -394,31 +432,53 @@ export class TTSController {
             content,
             wordCount,
             (progress) => {
+              // 检查是否已取消
+              if (cancelled || progressModal.isCancelRequested()) {
+                throw new Error('用户取消了生成');
+              }
               progressModal.updateProgress(progress);
             }
           );
 
+          // 再次检查是否已取消
+          if (cancelled || progressModal.isCancelRequested()) {
+            progressModal.close();
+            return;
+          }
+
           // 验证脚本
+          console.log('Generated dialogue script:', dialogueScript);
           const validation = this.plugin.dialogueParser.validate(dialogueScript);
+          console.log('Validation result:', validation);
+
           if (!validation.isValid) {
-            throw new Error(`对话脚本格式错误: ${validation.errors.join(', ')}`);
+            // 保存脚本以便调试
+            await this.plugin.dialogueFileManager.saveDialogue(filePath, dialogueScript);
+            throw new Error(`对话脚本格式错误: ${validation.errors.join(', ')}\n\n已保存到文件，请查看格式是否正确。`);
           }
 
           // 保存对话
-          progressModal.updateProgress({
-            stage: 'saving',
-            message: '正在保存对话文件...',
-            percentage: 70
-          });
+          if (!cancelled && !progressModal.isCancelRequested()) {
+            progressModal.updateProgress({
+              stage: 'saving',
+              message: '正在保存对话文件...',
+              percentage: 70
+            });
 
-          const savedPath = await this.plugin.dialogueFileManager.saveDialogue(filePath, dialogueScript);
+            const savedPath = await this.plugin.dialogueFileManager.saveDialogue(filePath, dialogueScript);
 
-          // 不关闭 Modal，继续生成音频
-          progressModal.updateProgress({
-            stage: 'generating',
-            message: '正在生成音频（准备中）...',
-            percentage: 70
-          });
+            // 检查是否已取消
+            if (cancelled || progressModal.isCancelRequested()) {
+              progressModal.close();
+              return;
+            }
+
+            // 不关闭 Modal，继续生成音频
+            progressModal.updateProgress({
+              stage: 'generating',
+              message: '正在生成音频（准备中）...',
+              percentage: 70
+            });
 
           // 解析对话
           const dialogueLines = this.plugin.dialogueParser.parse(dialogueScript);
@@ -430,33 +490,49 @@ export class TTSController {
             this.plugin.settings.qwen.model
           );
 
-          // 生成并合并音频
-          const audioPath = await audioMerger.generateMergedAudio(
-            savedPath,
-            dialogueLines,
-            (current, total, message) => {
-              const percentage = 70 + Math.floor((current / total) * 20);
-              progressModal.updateProgress({
-                stage: 'generating',
-                message: message,
-                percentage: percentage
-              });
+            // 生成并合并音频
+            const audioPath = await audioMerger.generateMergedAudio(
+              savedPath,
+              dialogueLines,
+              (current, total, message) => {
+                // 检查是否已取消
+                if (cancelled || progressModal.isCancelRequested()) {
+                  throw new Error('用户取消了生成');
+                }
+                const percentage = 70 + Math.floor((current / total) * 20);
+                progressModal.updateProgress({
+                  stage: 'generating',
+                  message: message,
+                  percentage: percentage
+                });
+              }
+            );
+
+            // 最后检查是否已取消
+            if (cancelled || progressModal.isCancelRequested()) {
+              progressModal.close();
+              return;
             }
-          );
 
-          progressModal.updateProgress({
-            stage: 'complete',
-            message: '对话生成完成！',
-            percentage: 100
-          });
+            progressModal.updateProgress({
+              stage: 'complete',
+              message: '对话生成完成！',
+              percentage: 100
+            });
 
-          // 延迟关闭 Modal
-          setTimeout(() => {
-            progressModal.close();
-            new Notice(`对话已保存到: ${savedPath}\n音频已缓存`);
-          }, 1000);
+            // 延迟关闭 Modal
+            setTimeout(() => {
+              progressModal.close();
+              new Notice(`对话已保存到: ${savedPath}\n音频已缓存`);
+            }, 1000);
+          }
         } catch (error) {
           progressModal.close();
+          // 如果是用户取消，不显示错误
+          if (error.message === '用户取消了生成') {
+            new Notice('已取消生成');
+            return;
+          }
           throw error;
         }
       }
@@ -494,6 +570,11 @@ export class TTSController {
 
       // 加载对话到播放器
       await this.plugin.multiVoicePlayer.loadDialogue(dialogueLines, audioUrl);
+
+      // 设置进度更新回调
+      this.plugin.multiVoicePlayer.setProgressCallback((current, total) => {
+        this.updateProgress(current, total);
+      });
 
       // 标记为对话模式
       this.isDialogueMode = true;
