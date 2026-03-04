@@ -4,37 +4,51 @@ import { App } from 'obsidian';
 
 export class DialogueFileManager {
   private app: App;
+  private readonly dialogueFolder = '对话记录';
 
   constructor(app: App) {
     this.app = app;
   }
 
   /**
+   * 确保对话目录存在
+   */
+  private async ensureDialogueFolderExists(): Promise<void> {
+    const folderExists = await this.app.vault.adapter.exists(this.dialogueFolder);
+    if (!folderExists) {
+      await this.app.vault.adapter.mkdir(this.dialogueFolder);
+    }
+  }
+
+  /**
    * 生成对话文件路径
    */
   getDialoguePath(originalPath: string): string {
-    const lastDot = originalPath.lastIndexOf('.');
-    const lastSlash = originalPath.lastIndexOf('/');
+    // 提取原文件名（不含路径）
+    const fileName = originalPath.split('/').pop() || originalPath;
 
-    if (lastDot > lastSlash) {
-      // 有扩展名
-      return originalPath.substring(0, lastDot) + '-对话.md';
-    } else {
-      // 无扩展名
-      return originalPath + '-对话.md';
-    }
+    // 移除扩展名
+    const lastDot = fileName.lastIndexOf('.');
+    const baseName = lastDot > 0 ? fileName.substring(0, lastDot) : fileName;
+
+    // 生成对话文件路径：对话记录/原文件名-对话.md
+    return `${this.dialogueFolder}/${baseName}-对话.md`;
   }
 
   /**
    * 保存对话脚本
    */
   async saveDialogue(originalPath: string, script: string): Promise<string> {
+    // 确保对话目录存在
+    await this.ensureDialogueFolderExists();
+
     const dialoguePath = this.getDialoguePath(originalPath);
 
     // 添加元信息
     const content = `---
 generated: ${new Date().toISOString()}
-source: ${originalPath.split('/').pop()}
+source: ${originalPath}
+sourceName: ${originalPath.split('/').pop()}
 type: dialogue
 ---
 
