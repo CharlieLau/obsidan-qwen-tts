@@ -4,7 +4,7 @@
   "version": "0.2.0",
   "minAppVersion": "0.15.0",
   "description": "Transform your notes into engaging AI-powered dialogues with multi-voice TTS. NotebookLM-style learning experience in Obsidian.",
-  "author": "Your Name",
-  "authorUrl": "https://github.com/yourusername",
+  "author": "CharlieLau",
+  "authorUrl": "https://github.com/CharlieLau",
   "isDesktopOnly": false
 }
