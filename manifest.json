@@ -6,5 +6,6 @@
   "description": "Transform your notes into engaging AI-powered dialogues with multi-voice TTS. NotebookLM-style learning experience in Obsidian.",
   "author": "CharlieLau",
   "authorUrl": "https://github.com/CharlieLau",
+  "fundingUrl": "https://github.com/CharlieLau/obsidan-qwen-tts",
   "isDesktopOnly": false
 }
