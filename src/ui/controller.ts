@@ -7,7 +7,7 @@ import { EngineStatus } from '../tts/engines/base';
 import TTSPlugin from '../main';
 import { DialogueProgressModal } from '../dialogue/dialogue-progress-modal';
 import { DialogueOptionsModal } from '../dialogue/dialogue-options-modal';
-import { DialogueAudioCache } from '../dialogue/dialogue-audio-cache';
+import { AudioMerger } from '../dialogue/audio-merger';
 
 export class TTSController {
   private controlBar: HTMLElement | null = null;
@@ -413,16 +413,47 @@ export class TTSController {
 
           const savedPath = await this.plugin.dialogueFileManager.saveDialogue(filePath, dialogueScript);
 
+          // 不关闭 Modal，继续生成音频
+          progressModal.updateProgress({
+            stage: 'generating',
+            message: '正在生成音频（准备中）...',
+            percentage: 70
+          });
+
+          // 解析对话
+          const dialogueLines = this.plugin.dialogueParser.parse(dialogueScript);
+
+          // 创建 AudioMerger
+          const audioMerger = new AudioMerger(
+            this.plugin.app,
+            this.plugin.settings.qwen.apiKey,
+            this.plugin.settings.qwen.model
+          );
+
+          // 生成并合并音频
+          const audioPath = await audioMerger.generateMergedAudio(
+            savedPath,
+            dialogueLines,
+            (current, total, message) => {
+              const percentage = 70 + Math.floor((current / total) * 20);
+              progressModal.updateProgress({
+                stage: 'generating',
+                message: message,
+                percentage: percentage
+              });
+            }
+          );
+
           progressModal.updateProgress({
             stage: 'complete',
             message: '对话生成完成！',
             percentage: 100
           });
 
-          // 延迟关闭 Modal，让用户看到完成状态
+          // 延迟关闭 Modal
           setTimeout(() => {
             progressModal.close();
-            new Notice(`对话已保存到: ${savedPath}`);
+            new Notice(`对话已保存到: ${savedPath}\n音频已缓存`);
           }, 1000);
         } catch (error) {
           progressModal.close();
@@ -444,8 +475,25 @@ export class TTSController {
         return;
       }
 
+      // 创建 AudioMerger 检查音频缓存
+      const audioMerger = new AudioMerger(
+        this.plugin.app,
+        this.plugin.settings.qwen.apiKey,
+        this.plugin.settings.qwen.model
+      );
+
+      const dialoguePath = this.plugin.dialogueFileManager.getDialoguePath(filePath);
+      const hasAudio = await audioMerger.hasAudioFile(dialoguePath);
+
+      let audioUrl: string | undefined;
+
+      if (hasAudio) {
+        // 加载缓存的音频
+        audioUrl = await audioMerger.loadAudioFile(dialoguePath);
+      }
+
       // 加载对话到播放器
-      await this.plugin.multiVoicePlayer.loadDialogue(dialogueLines);
+      await this.plugin.multiVoicePlayer.loadDialogue(dialogueLines, audioUrl);
 
       // 标记为对话模式
       this.isDialogueMode = true;

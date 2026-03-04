@@ -69,7 +69,7 @@ export class MultiVoicePlayer {
   }
 
   /**
-   * 播放下一句对话
+   * 播放下一句对话（实时生成模式）
    */
   private async playNext(): Promise<void> {
     if (!this.isPlaying || this.currentIndex >= this.dialogueLines.length) {
@@ -78,45 +78,6 @@ export class MultiVoicePlayer {
       return;
     }
 
-    // 如果有缓存的音频，使用缓存
-    if (this.audioCache.length > 0 && this.audioCache[this.currentIndex]) {
-      await this.playFromCache();
-    } else {
-      // 否则实时生成
-      await this.playRealtime();
-    }
-  }
-
-  /**
-   * 从缓存播放
-   */
-  private async playFromCache(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const cacheEntry = this.audioCache[this.currentIndex];
-
-      // 创建音频元素
-      this.currentAudio = new Audio(cacheEntry.url);
-
-      this.currentAudio.onended = () => {
-        this.cleanup();
-        this.currentIndex++;
-        this.playNext().then(resolve).catch(reject);
-      };
-
-      this.currentAudio.onerror = (event) => {
-        this.cleanup();
-        reject(new Error(`Audio playback error: ${event}`));
-      };
-
-      // 开始播放
-      this.currentAudio.play().catch(reject);
-    });
-  }
-
-  /**
-   * 实时生成播放
-   */
-  private async playRealtime(): Promise<void> {
     const line = this.dialogueLines[this.currentIndex];
     const language = this.detectLanguage(line.content);
 
