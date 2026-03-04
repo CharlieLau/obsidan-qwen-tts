@@ -311,8 +311,36 @@ export class TTSController {
   }
 
   private handleProgressClick(e: MouseEvent): void {
-    // TODO: 实现进度跳转功能
-    // 需要在引擎管理器中添加 seek 方法
+    // 只在对话模式下支持跳转（因为有合并的音频）
+    if (!this.isDialogueMode) {
+      return;
+    }
+
+    const progressBar = e.currentTarget as HTMLElement;
+    const rect = progressBar.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = clickX / rect.width;
+
+    // 获取音频总时长
+    const status = this.plugin.multiVoicePlayer.getStatus();
+    if (status === 'idle') {
+      return;
+    }
+
+    // 计算目标时间（假设进度条显示的是实际音频时长）
+    // 从进度时间文本中解析总时长
+    const timeText = this.progressTime.textContent || '0:00 / 0:00';
+    const match = timeText.match(/\d+:\d+ \/ (\d+):(\d+)/);
+
+    if (match) {
+      const totalMinutes = parseInt(match[1]);
+      const totalSeconds = parseInt(match[2]);
+      const totalDuration = totalMinutes * 60 + totalSeconds;
+      const targetTime = totalDuration * percentage;
+
+      // 跳转到目标时间
+      this.plugin.multiVoicePlayer.seekToTime(targetTime);
+    }
   }
 
   public updateProgress(current: number, total: number): void {
