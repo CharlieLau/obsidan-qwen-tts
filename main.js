@@ -7336,10 +7336,19 @@ var AudioMerger = class {
    */
   async loadAudioFile(dialoguePath) {
     const audioPath = this.getAudioPath(dialoguePath);
-    const audioData = await this.app.vault.adapter.readBinary(audioPath);
-    const blob = new Blob([audioData], { type: "audio/wav" });
-    const url = URL.createObjectURL(blob);
-    return url;
+    try {
+      const exists = await this.app.vault.adapter.exists(audioPath);
+      if (!exists) {
+        throw new Error(`\u97F3\u9891\u6587\u4EF6\u4E0D\u5B58\u5728: ${audioPath}`);
+      }
+      const audioData = await this.app.vault.adapter.readBinary(audioPath);
+      const blob = new Blob([audioData], { type: "audio/wav" });
+      const url = URL.createObjectURL(blob);
+      return url;
+    } catch (error) {
+      console.error("Failed to load audio file:", audioPath, error);
+      throw new Error(`\u65E0\u6CD5\u52A0\u8F7D\u97F3\u9891\u6587\u4EF6: ${error.message}`);
+    }
   }
   /**
    * 删除音频文件
@@ -7768,7 +7777,16 @@ var TTSController = class {
       const hasAudio = await audioMerger.hasAudioFile(dialoguePath);
       let audioUrl;
       if (hasAudio) {
-        audioUrl = await audioMerger.loadAudioFile(dialoguePath);
+        try {
+          audioUrl = await audioMerger.loadAudioFile(dialoguePath);
+        } catch (error) {
+          console.warn("Failed to load cached audio, will regenerate:", error);
+          try {
+            await audioMerger.deleteAudioFile(dialoguePath);
+          } catch (deleteError) {
+            console.warn("Failed to delete corrupted audio file:", deleteError);
+          }
+        }
       }
       await this.plugin.multiVoicePlayer.loadDialogue(dialogueLines, audioUrl);
       this.plugin.multiVoicePlayer.setProgressCallback((current, total) => {

@@ -207,13 +207,26 @@ export class AudioMerger {
    */
   async loadAudioFile(dialoguePath: string): Promise<string> {
     const audioPath = this.getAudioPath(dialoguePath);
-    const audioData = await this.app.vault.adapter.readBinary(audioPath);
 
-    // 创建 Blob URL
-    const blob = new Blob([audioData], { type: 'audio/wav' });
-    const url = URL.createObjectURL(blob);
+    try {
+      // 检查文件是否存在
+      const exists = await this.app.vault.adapter.exists(audioPath);
+      if (!exists) {
+        throw new Error(`音频文件不存在: ${audioPath}`);
+      }
 
-    return url;
+      // 读取音频数据
+      const audioData = await this.app.vault.adapter.readBinary(audioPath);
+
+      // 创建 Blob URL
+      const blob = new Blob([audioData], { type: 'audio/wav' });
+      const url = URL.createObjectURL(blob);
+
+      return url;
+    } catch (error) {
+      console.error('Failed to load audio file:', audioPath, error);
+      throw new Error(`无法加载音频文件: ${error.message}`);
+    }
   }
 
   /**

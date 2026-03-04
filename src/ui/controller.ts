@@ -580,8 +580,19 @@ export class TTSController {
       let audioUrl: string | undefined;
 
       if (hasAudio) {
-        // 加载缓存的音频
-        audioUrl = await audioMerger.loadAudioFile(dialoguePath);
+        try {
+          // 加载缓存的音频
+          audioUrl = await audioMerger.loadAudioFile(dialoguePath);
+        } catch (error) {
+          console.warn('Failed to load cached audio, will regenerate:', error);
+          // 删除损坏的缓存文件
+          try {
+            await audioMerger.deleteAudioFile(dialoguePath);
+          } catch (deleteError) {
+            console.warn('Failed to delete corrupted audio file:', deleteError);
+          }
+          // audioUrl 保持 undefined，播放器会实时生成
+        }
       }
 
       // 加载对话到播放器
