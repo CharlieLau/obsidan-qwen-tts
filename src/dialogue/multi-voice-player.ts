@@ -207,6 +207,32 @@ export class MultiVoicePlayer {
   }
 
   /**
+   * 跳转到指定时间（秒）
+   * 仅在有合并音频时有效
+   */
+  seekToTime(seconds: number): void {
+    if (!this.currentAudio) {
+      console.warn('No audio available for seeking');
+      return;
+    }
+
+    if (!this.mergedAudioUrl) {
+      console.warn('Seeking only available with merged audio');
+      return;
+    }
+
+    const duration = this.currentAudio.duration;
+    if (isNaN(duration) || duration === 0) {
+      console.warn('Audio duration not available');
+      return;
+    }
+
+    // 限制在有效范围内
+    const targetTime = Math.max(0, Math.min(seconds, duration));
+    this.currentAudio.currentTime = targetTime;
+  }
+
+  /**
    * 简单的语言检测
    */
   private detectLanguage(text: string): Language {

@@ -20,14 +20,12 @@ export class TTSController {
   private progressFill: HTMLElement;
   private progressTime: HTMLSpanElement;
   private voiceSelect: HTMLSelectElement;
-  private customVoiceToggle: HTMLButtonElement;
-  private customVoiceContainer: HTMLElement;
-  private customVoiceInput: HTMLInputElement;
   public engineManager: TTSEngineManager;
   private contentParser: ContentParser;
   private plugin: TTSPlugin;
   private currentAudio: HTMLAudioElement | null = null;
   private isDialogueMode: boolean = false;
+  private isGeneratingDialogue: boolean = false;
 
   constructor(engineManager: TTSEngineManager, plugin: TTSPlugin) {
     this.engineManager = engineManager;
@@ -107,11 +105,15 @@ export class TTSController {
       this.dialogueButton.title = mode === 'education' ? '对话模式（教育）' : '对话模式（播客）';
     };
 
+    // 播放控制按钮组
     mainControls.appendChild(this.startButton);
     mainControls.appendChild(this.pauseButton);
     mainControls.appendChild(this.stopButton);
-    mainControls.appendChild(this.dialogueButton);
-    mainControls.appendChild(dialogueModeSelector);
+
+    // 添加分隔符
+    const separator1 = document.createElement('div');
+    separator1.addClass('tts-separator');
+    mainControls.appendChild(separator1);
 
     // 创建状态文本（隐藏，仅在错误时显示）
     this.statusText = document.createElement('span');
@@ -141,13 +143,18 @@ export class TTSController {
     // 将进度条添加到主控制行
     mainControls.appendChild(progressContainer);
 
+    // 添加分隔符
+    const separator2 = document.createElement('div');
+    separator2.addClass('tts-separator');
+    mainControls.appendChild(separator2);
+
     // 创建音色选择器（放在主控制行）
     const voiceSelector = document.createElement('div');
     voiceSelector.addClass('tts-voice-selector');
 
     const voiceLabel = document.createElement('span');
     voiceLabel.addClass('tts-voice-label');
-    voiceLabel.textContent = '音色：';
+    voiceLabel.textContent = '音色';
 
     this.voiceSelect = document.createElement('select');
     this.voiceSelect.addClass('tts-voice-select');
@@ -159,13 +166,14 @@ export class TTSController {
       // 如果没有音色列表，添加一个默认选项
       const option = document.createElement('option');
       option.value = 'Cherry';
-      option.textContent = 'Cherry (芊悦)';
+      option.textContent = 'Cherry';
       this.voiceSelect.appendChild(option);
     } else {
       voices.forEach(voice => {
         const option = document.createElement('option');
         option.value = voice.key;
-        option.textContent = voice.value;
+        // 只显示音色名称，不显示括号内容
+        option.textContent = voice.key;
         this.voiceSelect.appendChild(option);
       });
     }
@@ -182,58 +190,28 @@ export class TTSController {
     voiceSelector.appendChild(voiceLabel);
     voiceSelector.appendChild(this.voiceSelect);
 
-    // 创建自定义音色切换按钮
-    this.customVoiceToggle = document.createElement('button');
-    this.customVoiceToggle.addClass('tts-custom-voice-toggle');
-    this.customVoiceToggle.textContent = '⚙';
-    this.customVoiceToggle.title = '自定义音色';
-    this.customVoiceToggle.onclick = () => this.toggleCustomVoice();
-
     // 添加音色选择器到主控制行
     mainControls.appendChild(voiceSelector);
-    mainControls.appendChild(this.customVoiceToggle);
+
+    // 添加分隔符
+    const separator3 = document.createElement('div');
+    separator3.addClass('tts-separator');
+    mainControls.appendChild(separator3);
+
+    // 对话模式区
+    mainControls.appendChild(this.dialogueButton);
+    mainControls.appendChild(dialogueModeSelector);
+
+    // 状态文本（放在最右侧）
     mainControls.appendChild(this.statusText);
-
-    // 创建自定义音色输入容器
-    this.customVoiceContainer = document.createElement('div');
-    this.customVoiceContainer.addClass('tts-custom-voice-container');
-
-    this.customVoiceInput = document.createElement('input');
-    this.customVoiceInput.addClass('tts-custom-voice-input');
-    this.customVoiceInput.type = 'text';
-    this.customVoiceInput.placeholder = '输入自定义音色名称';
-    this.customVoiceInput.value = this.plugin.settings.qwen.customVoice || '';
-    this.customVoiceInput.oninput = async () => {
-      this.plugin.settings.qwen.customVoice = this.customVoiceInput.value;
-      await this.plugin.saveSettings();
-    };
-
-    const customVoiceHint = document.createElement('div');
-    customVoiceHint.addClass('tts-custom-voice-hint');
-    customVoiceHint.textContent = '适用于其他 TTS 模型的音色名称';
-
-    this.customVoiceContainer.appendChild(this.customVoiceInput);
-    this.customVoiceContainer.appendChild(customVoiceHint);
 
     // 组装控制条
     this.controlBar.appendChild(mainControls);
-    this.controlBar.appendChild(this.customVoiceContainer);
 
     // 将控制条插入到编辑器容器
     const contentEl = view.containerEl.querySelector('.view-content');
     if (contentEl) {
       contentEl.insertBefore(this.controlBar, contentEl.firstChild);
-    }
-  }
-
-  private toggleCustomVoice(): void {
-    const isVisible = this.customVoiceContainer.hasClass('visible');
-    if (isVisible) {
-      this.customVoiceContainer.removeClass('visible');
-      this.customVoiceToggle.removeClass('active');
-    } else {
-      this.customVoiceContainer.addClass('visible');
-      this.customVoiceToggle.addClass('active');
     }
   }
 
@@ -333,8 +311,36 @@ export class TTSController {
   }
 
   private handleProgressClick(e: MouseEvent): void {
-    // TODO: 实现进度跳转功能
-    // 需要在引擎管理器中添加 seek 方法
+    // 只在对话模式下支持跳转（因为有合并的音频）
+    if (!this.isDialogueMode) {
+      return;
+    }
+
+    const progressBar = e.currentTarget as HTMLElement;
+    const rect = progressBar.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = clickX / rect.width;
+
+    // 获取音频总时长
+    const status = this.plugin.multiVoicePlayer.getStatus();
+    if (status === 'idle') {
+      return;
+    }
+
+    // 计算目标时间（假设进度条显示的是实际音频时长）
+    // 从进度时间文本中解析总时长
+    const timeText = this.progressTime.textContent || '0:00 / 0:00';
+    const match = timeText.match(/\d+:\d+ \/ (\d+):(\d+)/);
+
+    if (match) {
+      const totalMinutes = parseInt(match[1]);
+      const totalSeconds = parseInt(match[2]);
+      const totalDuration = totalMinutes * 60 + totalSeconds;
+      const targetTime = totalDuration * percentage;
+
+      // 跳转到目标时间
+      this.plugin.multiVoicePlayer.seekToTime(targetTime);
+    }
   }
 
   public updateProgress(current: number, total: number): void {
@@ -379,6 +385,12 @@ export class TTSController {
 
   private async handleDialogue(view: MarkdownView): Promise<void> {
     try {
+      // 防止重复点击
+      if (this.isGeneratingDialogue) {
+        new Notice('对话生成中，请稍候...');
+        return;
+      }
+
       // 获取当前文件路径
       const file = view.file;
       if (!file) {
@@ -414,6 +426,9 @@ export class TTSController {
       }
 
       if (shouldGenerate) {
+        // 标记正在生成
+        this.isGeneratingDialogue = true;
+
         // 显示进度 Modal，带取消回调
         let cancelled = false;
         const progressModal = new DialogueProgressModal(this.plugin.app, () => {
@@ -525,12 +540,16 @@ export class TTSController {
           }
         } catch (error) {
           progressModal.close();
+          this.isGeneratingDialogue = false;
           // 如果是用户取消，不显示错误
           if (error.message === '用户取消了生成') {
             new Notice('已取消生成');
             return;
           }
           throw error;
+        } finally {
+          // 确保标志被重置
+          this.isGeneratingDialogue = false;
         }
       }
 
