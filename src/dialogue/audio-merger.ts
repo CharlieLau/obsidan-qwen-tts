@@ -8,7 +8,7 @@ export class AudioMerger {
   private apiKey: string;
   private model: string;
   private readonly apiEndpoint = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation';
-  private readonly audioFolder = '对话记录/.audio';
+  private readonly audioFolder = '对话记录/audio-cache';
 
   constructor(app: App, apiKey: string, model: string = 'qwen3-tts-instruct-flash') {
     this.app = app;
