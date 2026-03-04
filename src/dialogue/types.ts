@@ -1,6 +1,14 @@
 // src/dialogue/types.ts
 
-export type DialogueRole = 'host' | 'curious' | 'critical';
+export type DialogueMode = 'education' | 'podcast';
+
+// 教育模式角色
+export type EducationRole = 'host' | 'curious' | 'critical';
+
+// 播客模式角色
+export type PodcastRole = 'host1' | 'host2';
+
+export type DialogueRole = EducationRole | PodcastRole;
 
 export interface DialogueLine {
   role: DialogueRole;

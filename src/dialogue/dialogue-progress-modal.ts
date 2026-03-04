@@ -7,9 +7,20 @@ export class DialogueProgressModal extends Modal {
   private progressBar: HTMLElement;
   private messageEl: HTMLElement;
   private percentageEl: HTMLElement;
+  private cancelButton: HTMLButtonElement;
+  private onCancel?: () => void;
+  private isCancelled: boolean = false;
 
-  constructor(app: App) {
+  constructor(app: App, onCancel?: () => void) {
     super(app);
+    this.onCancel = onCancel;
+  }
+
+  /**
+   * 检查是否已取消
+   */
+  isCancelRequested(): boolean {
+    return this.isCancelled;
   }
 
   onOpen(): void {
@@ -37,6 +48,17 @@ export class DialogueProgressModal extends Modal {
     // 消息显示
     this.messageEl = contentEl.createDiv({ cls: 'progress-message' });
     this.messageEl.textContent = '准备中...';
+
+    // 取消按钮
+    const buttonContainer = contentEl.createDiv({ cls: 'dialogue-options-buttons' });
+    this.cancelButton = buttonContainer.createEl('button', { text: '取消' });
+    this.cancelButton.onclick = () => {
+      this.isCancelled = true;
+      if (this.onCancel) {
+        this.onCancel();
+      }
+      this.close();
+    };
   }
 
   /**
@@ -46,6 +68,11 @@ export class DialogueProgressModal extends Modal {
     this.progressBar.style.width = `${progress.percentage}%`;
     this.percentageEl.textContent = `${progress.percentage}%`;
     this.messageEl.textContent = progress.message;
+
+    // 完成时隐藏取消按钮
+    if (progress.stage === 'complete' && this.cancelButton) {
+      this.cancelButton.style.display = 'none';
+    }
   }
 
   onClose(): void {
