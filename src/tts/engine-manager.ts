@@ -5,6 +5,7 @@ import { ITTSEngine, EngineType, EngineConfig, Language, EngineStatus } from './
 import { WebSpeechEngine } from './engines/web-speech';
 import { OpenAIEngine } from './engines/openai';
 import { QwenEngine } from './engines/qwen';
+import { TextSegment } from '../utils/language-detector';
 
 export class TTSEngineManager {
   private engines: Map<EngineType, ITTSEngine> = new Map();
@@ -12,6 +13,7 @@ export class TTSEngineManager {
   private currentSegmentIndex: number = 0;
   private segments: Array<{ text: string; language: Language }> = [];
   private isPlaying: boolean = false;
+  private currentSegments: TextSegment[] = [];
 
   constructor(config: EngineConfig) {
     // 初始化 Web Speech API 引擎（默认）
@@ -47,8 +49,9 @@ export class TTSEngineManager {
   private config: EngineConfig;
 
   async speakSegments(segments: Array<{ text: string; language: Language }>): Promise<void> {
-    this.segments = segments;
+    this.currentSegments = segments;
     this.currentSegmentIndex = 0;
+    this.segments = segments;
     this.isPlaying = true;
 
     try {
@@ -116,5 +119,19 @@ export class TTSEngineManager {
     if (this.config) {
       this.config.playbackSpeed = speed;
     }
+  }
+
+  async seekToSegment(index: number): Promise<void> {
+    if (index < 0 || index >= this.currentSegments.length) {
+      throw new Error(`Invalid segment index: ${index}`);
+    }
+
+    // Stop current playback
+    this.stop();
+
+    // Start from target segment
+    this.currentSegmentIndex = index;
+    const remainingSegments = this.currentSegments.slice(index);
+    await this.speakSegments(remainingSegments);
   }
 }
