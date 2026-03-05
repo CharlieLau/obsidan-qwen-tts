@@ -38,7 +38,7 @@ export class DialogueFileManager {
   /**
    * 保存对话脚本
    */
-  async saveDialogue(originalPath: string, script: string): Promise<string> {
+  async saveDialogue(originalPath: string, script: string, templateId?: string, style?: string): Promise<string> {
     // 确保对话目录存在
     await this.ensureDialogueFolderExists();
 
@@ -57,6 +57,8 @@ sourceName: ${originalPath.split('/').pop()}
 type: dialogue
 dialogueLines: ${dialogueCount}
 characters: ${charCount}
+templateId: ${templateId || 'classroom'}
+style: ${style || 'casual'}
 ---
 
 # 对话脚本

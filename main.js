@@ -6,6 +6,9 @@ var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
@@ -19,6 +22,124 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// src/dialogue/dialogue-template-manager.ts
+var dialogue_template_manager_exports = {};
+__export(dialogue_template_manager_exports, {
+  DialogueTemplateManager: () => DialogueTemplateManager
+});
+var DialogueTemplateManager;
+var init_dialogue_template_manager = __esm({
+  "src/dialogue/dialogue-template-manager.ts"() {
+    DialogueTemplateManager = class {
+      constructor() {
+        this.templates = /* @__PURE__ */ new Map();
+        this.initializeTemplates();
+      }
+      initializeTemplates() {
+        this.templates.set("solo", {
+          id: "solo",
+          name: "\u5355\u4EBA\u8BB2\u89E3",
+          icon: "\u{1F4D6}",
+          description: "\u9002\u5408\u77E5\u8BC6\u4F20\u6388\u3001\u6559\u7A0B",
+          roles: [
+            {
+              name: "\u8BB2\u89E3\u8005",
+              voice: "Ethan",
+              personality: "\u6E05\u6670\u3001\u6709\u6761\u7406\u5730\u8BB2\u89E3\u5185\u5BB9"
+            }
+          ]
+        });
+        this.templates.set("duo", {
+          id: "duo",
+          name: "\u53CC\u4EBA\u5BF9\u8BDD",
+          icon: "\u{1F4AC}",
+          description: "\u9002\u5408\u8F7B\u677E\u8BA8\u8BBA\u3001\u64AD\u5BA2",
+          roles: [
+            {
+              name: "\u5BF9\u8BDD\u8005A",
+              voice: "Cherry",
+              personality: "\u6D3B\u6CFC\u3001\u597D\u5947"
+            },
+            {
+              name: "\u5BF9\u8BDD\u8005B",
+              voice: "Serena",
+              personality: "\u7406\u6027\u3001\u6E29\u548C"
+            }
+          ]
+        });
+        this.templates.set("classroom", {
+          id: "classroom",
+          name: "\u4E09\u4EBA\u8BFE\u5802",
+          icon: "\u{1F4DA}",
+          description: "\u9002\u5408\u6DF1\u5EA6\u5B66\u4E60\u3001\u8BFE\u5802",
+          roles: [
+            {
+              name: "\u8BB2\u5E08",
+              voice: "Ethan",
+              personality: "\u7ECF\u9A8C\u4E30\u5BCC\uFF0C\u8BB2\u89E3\u6E05\u6670"
+            },
+            {
+              name: "\u597D\u5947\u5B66\u751F",
+              voice: "Cherry",
+              personality: "\u5145\u6EE1\u597D\u5947\uFF0C\u63D0\u51FA\u57FA\u7840\u95EE\u9898"
+            },
+            {
+              name: "\u6279\u5224\u5B66\u751F",
+              voice: "Serena",
+              personality: "\u5584\u4E8E\u601D\u8003\uFF0C\u63D0\u51FA\u6DF1\u5EA6\u95EE\u9898"
+            }
+          ]
+        });
+        this.templates.set("debate", {
+          id: "debate",
+          name: "\u53CC\u4EBA\u8FA9\u8BBA",
+          icon: "\u2694\uFE0F",
+          description: "\u9002\u5408\u89C2\u70B9\u78B0\u649E\u3001\u8FA9\u8BBA",
+          roles: [
+            {
+              name: "\u6B63\u65B9",
+              voice: "Ethan",
+              personality: "\u575A\u5B9A\u3001\u6709\u529B\u5730\u9610\u8FF0\u89C2\u70B9"
+            },
+            {
+              name: "\u53CD\u65B9",
+              voice: "Kai",
+              personality: "\u6279\u5224\u6027\u601D\u8003\uFF0C\u63D0\u51FA\u53CD\u9A73"
+            }
+          ]
+        });
+        this.templates.set("interview", {
+          id: "interview",
+          name: "\u8BBF\u8C08\u6A21\u5F0F",
+          icon: "\u{1F399}\uFE0F",
+          description: "\u9002\u5408\u4EBA\u7269\u91C7\u8BBF\u3001\u8BDD\u9898\u8BBF\u8C08",
+          roles: [
+            {
+              name: "\u4E3B\u6301\u4EBA",
+              voice: "Cherry",
+              personality: "\u5F15\u5BFC\u8BDD\u9898\uFF0C\u63D0\u51FA\u5173\u952E\u95EE\u9898"
+            },
+            {
+              name: "\u5609\u5BBE",
+              voice: "Ethan",
+              personality: "\u5206\u4EAB\u89C1\u89E3\uFF0C\u56DE\u7B54\u95EE\u9898"
+            }
+          ]
+        });
+      }
+      getTemplates() {
+        return Array.from(this.templates.values());
+      }
+      getTemplate(id) {
+        return this.templates.get(id);
+      }
+      getDefaultTemplate() {
+        return this.templates.get("classroom");
+      }
+    };
+  }
+});
 
 // src/main.ts
 var main_exports = {};
@@ -7222,117 +7343,7 @@ var DialogueOptionsModal = class extends import_obsidian5.Modal {
 
 // src/dialogue/dialogue-config-modal.ts
 var import_obsidian6 = require("obsidian");
-
-// src/dialogue/dialogue-template-manager.ts
-var DialogueTemplateManager = class {
-  constructor() {
-    this.templates = /* @__PURE__ */ new Map();
-    this.initializeTemplates();
-  }
-  initializeTemplates() {
-    this.templates.set("solo", {
-      id: "solo",
-      name: "\u5355\u4EBA\u8BB2\u89E3",
-      icon: "\u{1F4D6}",
-      description: "\u9002\u5408\u77E5\u8BC6\u4F20\u6388\u3001\u6559\u7A0B",
-      roles: [
-        {
-          name: "\u8BB2\u89E3\u8005",
-          voice: "Ethan",
-          personality: "\u6E05\u6670\u3001\u6709\u6761\u7406\u5730\u8BB2\u89E3\u5185\u5BB9"
-        }
-      ]
-    });
-    this.templates.set("duo", {
-      id: "duo",
-      name: "\u53CC\u4EBA\u5BF9\u8BDD",
-      icon: "\u{1F4AC}",
-      description: "\u9002\u5408\u8F7B\u677E\u8BA8\u8BBA\u3001\u64AD\u5BA2",
-      roles: [
-        {
-          name: "\u5BF9\u8BDD\u8005A",
-          voice: "Cherry",
-          personality: "\u6D3B\u6CFC\u3001\u597D\u5947"
-        },
-        {
-          name: "\u5BF9\u8BDD\u8005B",
-          voice: "Serena",
-          personality: "\u7406\u6027\u3001\u6E29\u548C"
-        }
-      ]
-    });
-    this.templates.set("classroom", {
-      id: "classroom",
-      name: "\u4E09\u4EBA\u8BFE\u5802",
-      icon: "\u{1F4DA}",
-      description: "\u9002\u5408\u6DF1\u5EA6\u5B66\u4E60\u3001\u8BFE\u5802",
-      roles: [
-        {
-          name: "\u8BB2\u5E08",
-          voice: "Ethan",
-          personality: "\u7ECF\u9A8C\u4E30\u5BCC\uFF0C\u8BB2\u89E3\u6E05\u6670"
-        },
-        {
-          name: "\u597D\u5947\u5B66\u751F",
-          voice: "Cherry",
-          personality: "\u5145\u6EE1\u597D\u5947\uFF0C\u63D0\u51FA\u57FA\u7840\u95EE\u9898"
-        },
-        {
-          name: "\u6279\u5224\u5B66\u751F",
-          voice: "Serena",
-          personality: "\u5584\u4E8E\u601D\u8003\uFF0C\u63D0\u51FA\u6DF1\u5EA6\u95EE\u9898"
-        }
-      ]
-    });
-    this.templates.set("debate", {
-      id: "debate",
-      name: "\u53CC\u4EBA\u8FA9\u8BBA",
-      icon: "\u2694\uFE0F",
-      description: "\u9002\u5408\u89C2\u70B9\u78B0\u649E\u3001\u8FA9\u8BBA",
-      roles: [
-        {
-          name: "\u6B63\u65B9",
-          voice: "Ethan",
-          personality: "\u575A\u5B9A\u3001\u6709\u529B\u5730\u9610\u8FF0\u89C2\u70B9"
-        },
-        {
-          name: "\u53CD\u65B9",
-          voice: "Kai",
-          personality: "\u6279\u5224\u6027\u601D\u8003\uFF0C\u63D0\u51FA\u53CD\u9A73"
-        }
-      ]
-    });
-    this.templates.set("interview", {
-      id: "interview",
-      name: "\u8BBF\u8C08\u6A21\u5F0F",
-      icon: "\u{1F399}\uFE0F",
-      description: "\u9002\u5408\u4EBA\u7269\u91C7\u8BBF\u3001\u8BDD\u9898\u8BBF\u8C08",
-      roles: [
-        {
-          name: "\u4E3B\u6301\u4EBA",
-          voice: "Cherry",
-          personality: "\u5F15\u5BFC\u8BDD\u9898\uFF0C\u63D0\u51FA\u5173\u952E\u95EE\u9898"
-        },
-        {
-          name: "\u5609\u5BBE",
-          voice: "Ethan",
-          personality: "\u5206\u4EAB\u89C1\u89E3\uFF0C\u56DE\u7B54\u95EE\u9898"
-        }
-      ]
-    });
-  }
-  getTemplates() {
-    return Array.from(this.templates.values());
-  }
-  getTemplate(id) {
-    return this.templates.get(id);
-  }
-  getDefaultTemplate() {
-    return this.templates.get("classroom");
-  }
-};
-
-// src/dialogue/dialogue-config-modal.ts
+init_dialogue_template_manager();
 var DialogueConfigModal = class extends import_obsidian6.Modal {
   constructor(app, defaultTemplate, defaultStyle) {
     super(app);
@@ -7991,9 +8002,10 @@ var TTSController = class {
             progressModal.close();
             return;
           }
+          this.plugin.dialogueParser.setTemplate(config.template);
           const validation = this.plugin.dialogueParser.validate(dialogueScript);
           if (!validation.isValid) {
-            await this.plugin.dialogueFileManager.saveDialogue(filePath, dialogueScript);
+            await this.plugin.dialogueFileManager.saveDialogue(filePath, dialogueScript, config.template.id, config.style);
             throw new Error(`\u5BF9\u8BDD\u811A\u672C\u683C\u5F0F\u9519\u8BEF: ${validation.errors.join(", ")}
 
 \u5DF2\u4FDD\u5B58\u5230\u6587\u4EF6\uFF0C\u8BF7\u67E5\u770B\u683C\u5F0F\u662F\u5426\u6B63\u786E\u3002`);
@@ -8004,7 +8016,7 @@ var TTSController = class {
               message: "\u6B63\u5728\u4FDD\u5B58\u5BF9\u8BDD\u6587\u4EF6...",
               percentage: 70
             });
-            const savedPath = await this.plugin.dialogueFileManager.saveDialogue(filePath, dialogueScript);
+            const savedPath = await this.plugin.dialogueFileManager.saveDialogue(filePath, dialogueScript, config.template.id, config.style);
             if (cancelled || progressModal.isCancelRequested()) {
               progressModal.close();
               return;
@@ -8066,6 +8078,12 @@ var TTSController = class {
         new import_obsidian8.Notice("\u65E0\u6CD5\u83B7\u53D6\u5BF9\u8BDD\u811A\u672C");
         return;
       }
+      const { DialogueTemplateManager: DialogueTemplateManager2 } = await Promise.resolve().then(() => (init_dialogue_template_manager(), dialogue_template_manager_exports));
+      const templateManager2 = new DialogueTemplateManager2();
+      const template2 = templateManager2.getTemplate(this.plugin.settings.dialogueTemplate);
+      if (template2) {
+        this.plugin.dialogueParser.setTemplate(template2);
+      }
       const dialogueLines = this.plugin.dialogueParser.parse(dialogueScript);
       if (dialogueLines.length === 0) {
         new import_obsidian8.Notice("\u5BF9\u8BDD\u5185\u5BB9\u4E3A\u7A7A");
@@ -8111,6 +8129,7 @@ var TTSController = class {
 
 // src/dialogue/dialogue-generator.ts
 var import_obsidian9 = require("obsidian");
+init_dialogue_template_manager();
 var DialogueGenerator = class {
   constructor(apiKey, model = "qwen3.5-plus", mode = "education") {
     this.apiEndpoint = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
@@ -8404,6 +8423,7 @@ ${content}
 // src/dialogue/dialogue-parser.ts
 var DialogueParser = class {
   constructor(mode = "education", educationVoices, podcastVoices) {
+    this.currentTemplate = null;
     // 教育模式：角色标记的正则表达式（容忍空格）
     this.educationRolePatterns = {
       "host": /^\[\s*主讲人\s*\]\s*:\s*/,
@@ -8425,6 +8445,12 @@ var DialogueParser = class {
       "host1": "Moon",
       "host2": "Maia"
     };
+  }
+  /**
+   * 设置当前使用的模板
+   */
+  setTemplate(template) {
+    this.currentTemplate = template;
   }
   /**
    * 设置对话模式
@@ -8461,24 +8487,49 @@ var DialogueParser = class {
   parse(script) {
     const lines = script.split("\n").filter((line) => line.trim());
     const dialogueLines = [];
-    const voiceMapping = this.getVoiceMapping();
-    const rolePatterns = this.getRolePatterns();
-    for (const line of lines) {
-      let role = null;
-      let content = line;
-      for (const [roleKey, pattern] of Object.entries(rolePatterns)) {
-        if (pattern.test(line)) {
-          role = roleKey;
-          content = line.replace(pattern, "");
-          break;
+    if (this.currentTemplate) {
+      const roleMap = /* @__PURE__ */ new Map();
+      this.currentTemplate.roles.forEach((role, index) => {
+        roleMap.set(role.name, { voice: role.voice, index });
+      });
+      for (const line of lines) {
+        let matched = false;
+        for (const [roleName, roleInfo] of roleMap.entries()) {
+          const pattern = new RegExp(`^\\[\\s*${roleName}\\s*\\]\\s*:\\s*`);
+          if (pattern.test(line)) {
+            const content = line.replace(pattern, "").trim();
+            if (content) {
+              dialogueLines.push({
+                role: `role${roleInfo.index}`,
+                content,
+                voice: roleInfo.voice
+              });
+            }
+            matched = true;
+            break;
+          }
         }
       }
-      if (role && content.trim()) {
-        dialogueLines.push({
-          role,
-          content: content.trim(),
-          voice: voiceMapping[role]
-        });
+    } else {
+      const voiceMapping = this.getVoiceMapping();
+      const rolePatterns = this.getRolePatterns();
+      for (const line of lines) {
+        let role = null;
+        let content = line;
+        for (const [roleKey, pattern] of Object.entries(rolePatterns)) {
+          if (pattern.test(line)) {
+            role = roleKey;
+            content = line.replace(pattern, "");
+            break;
+          }
+        }
+        if (role && content.trim()) {
+          dialogueLines.push({
+            role,
+            content: content.trim(),
+            voice: voiceMapping[role]
+          });
+        }
       }
     }
     return dialogueLines;
@@ -8489,21 +8540,36 @@ var DialogueParser = class {
   validate(script) {
     const errors = [];
     const lines = script.split("\n").filter((line) => line.trim());
-    const rolePatterns = this.getRolePatterns();
     if (lines.length === 0) {
       errors.push("\u5BF9\u8BDD\u811A\u672C\u4E3A\u7A7A");
       return { isValid: false, errors };
     }
-    let unrecognizedLines = 0;
     let recognizedLines = 0;
-    for (const line of lines) {
-      const hasRole = Object.values(rolePatterns).some(
-        (pattern) => pattern.test(line)
-      );
-      if (hasRole) {
-        recognizedLines++;
-      } else {
-        unrecognizedLines++;
+    let unrecognizedLines = 0;
+    if (this.currentTemplate) {
+      const roleNames = this.currentTemplate.roles.map((r) => r.name);
+      for (const line of lines) {
+        const hasRole = roleNames.some((roleName) => {
+          const pattern = new RegExp(`^\\[\\s*${roleName}\\s*\\]\\s*:`);
+          return pattern.test(line);
+        });
+        if (hasRole) {
+          recognizedLines++;
+        } else {
+          unrecognizedLines++;
+        }
+      }
+    } else {
+      const rolePatterns = this.getRolePatterns();
+      for (const line of lines) {
+        const hasRole = Object.values(rolePatterns).some(
+          (pattern) => pattern.test(line)
+        );
+        if (hasRole) {
+          recognizedLines++;
+        } else {
+          unrecognizedLines++;
+        }
       }
     }
     if (recognizedLines === 0) {
@@ -8545,7 +8611,7 @@ var DialogueFileManager = class {
   /**
    * 保存对话脚本
    */
-  async saveDialogue(originalPath, script) {
+  async saveDialogue(originalPath, script, templateId, style) {
     await this.ensureDialogueFolderExists();
     const dialoguePath = this.getDialoguePath(originalPath);
     const lines = script.split("\n").filter((line) => line.trim().length > 0);
@@ -8558,6 +8624,8 @@ sourceName: ${originalPath.split("/").pop()}
 type: dialogue
 dialogueLines: ${dialogueCount}
 characters: ${charCount}
+templateId: ${templateId || "classroom"}
+style: ${style || "casual"}
 ---
 
 # \u5BF9\u8BDD\u811A\u672C

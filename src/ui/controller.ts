@@ -510,12 +510,15 @@ export class TTSController {
             return;
           }
 
+          // 设置模板到 parser（用于识别角色）
+          this.plugin.dialogueParser.setTemplate(config.template);
+
           // 验证脚本
           const validation = this.plugin.dialogueParser.validate(dialogueScript);
 
           if (!validation.isValid) {
             // 保存脚本以便调试
-            await this.plugin.dialogueFileManager.saveDialogue(filePath, dialogueScript);
+            await this.plugin.dialogueFileManager.saveDialogue(filePath, dialogueScript, config.template.id, config.style);
             throw new Error(`对话脚本格式错误: ${validation.errors.join(', ')}\n\n已保存到文件，请查看格式是否正确。`);
           }
 
@@ -527,7 +530,7 @@ export class TTSController {
               percentage: 70
             });
 
-            const savedPath = await this.plugin.dialogueFileManager.saveDialogue(filePath, dialogueScript);
+            const savedPath = await this.plugin.dialogueFileManager.saveDialogue(filePath, dialogueScript, config.template.id, config.style);
 
             // 检查是否已取消
             if (cancelled || progressModal.isCancelRequested()) {
@@ -607,6 +610,16 @@ export class TTSController {
       if (!dialogueScript) {
         new Notice('无法获取对话脚本');
         return;
+      }
+
+      // 从对话脚本的 frontmatter 中提取模板信息，如果没有则使用当前选择的模板
+      // TODO: 从 frontmatter 读取 templateId，然后加载对应模板
+      // 暂时使用当前选择的模板
+      const { DialogueTemplateManager } = await import('../dialogue/dialogue-template-manager');
+      const templateManager2 = new DialogueTemplateManager();
+      const template2 = templateManager2.getTemplate(this.plugin.settings.dialogueTemplate);
+      if (template2) {
+        this.plugin.dialogueParser.setTemplate(template2);
       }
 
       // 解析对话
