@@ -181,6 +181,13 @@ export class MultiVoicePlayer {
   }
 
   /**
+   * 获取当前音频元素
+   */
+  getCurrentAudio(): HTMLAudioElement | null {
+    return this.currentAudio;
+  }
+
+  /**
    * 获取播放进度
    */
   getProgress(): { current: number; total: number; percentage: number } {

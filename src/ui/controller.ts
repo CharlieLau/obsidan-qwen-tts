@@ -8,6 +8,7 @@ import TTSPlugin from '../main';
 import { DialogueProgressModal } from '../dialogue/dialogue-progress-modal';
 import { DialogueOptionsModal } from '../dialogue/dialogue-options-modal';
 import { AudioMerger } from '../dialogue/audio-merger';
+import { SpeedController } from '../utils/speed-controller';
 
 export class TTSController {
   private controlBar: HTMLElement | null = null;
@@ -20,6 +21,8 @@ export class TTSController {
   private progressFill: HTMLElement;
   private progressTime: HTMLSpanElement;
   private voiceSelect: HTMLSelectElement;
+  private speedSelect: HTMLSelectElement;
+  private speedController: SpeedController;
   public engineManager: TTSEngineManager;
   private contentParser: ContentParser;
   private plugin: TTSPlugin;
@@ -31,6 +34,7 @@ export class TTSController {
     this.engineManager = engineManager;
     this.contentParser = new ContentParser();
     this.plugin = plugin;
+    this.speedController = new SpeedController(plugin.settings.playbackSpeed);
   }
 
   renderControlBar(view: MarkdownView): void {
@@ -197,6 +201,54 @@ export class TTSController {
     const separator3 = document.createElement('div');
     separator3.addClass('tts-separator');
     mainControls.appendChild(separator3);
+
+    // 创建速度选择器
+    const speedSelector = document.createElement('div');
+    speedSelector.addClass('tts-speed-selector');
+
+    const speedIcon = document.createElement('span');
+    speedIcon.addClass('tts-speed-icon');
+    speedIcon.textContent = '🎬';
+
+    this.speedSelect = document.createElement('select');
+    this.speedSelect.addClass('tts-speed-select');
+
+    // 添加速度选项
+    const speeds = this.speedController.getSpeedOptions();
+    speeds.forEach(speed => {
+      const option = document.createElement('option');
+      option.value = speed.toString();
+      option.textContent = `${speed}x`;
+      this.speedSelect.appendChild(option);
+    });
+
+    // 设置当前速度
+    this.speedSelect.value = this.plugin.settings.playbackSpeed.toString();
+
+    // 监听速度变化
+    this.speedSelect.onchange = async () => {
+      const newSpeed = parseFloat(this.speedSelect.value);
+      this.speedController.setSpeed(newSpeed);
+      this.plugin.settings.playbackSpeed = newSpeed;
+      await this.plugin.saveSettings();
+
+      // 应用到当前播放（如果正在播放）
+      if (this.isDialogueMode) {
+        const audio = this.plugin.multiVoicePlayer.getCurrentAudio();
+        if (audio) {
+          this.speedController.applyToAudio(audio);
+        }
+      }
+    };
+
+    speedSelector.appendChild(speedIcon);
+    speedSelector.appendChild(this.speedSelect);
+    mainControls.appendChild(speedSelector);
+
+    // 添加分隔符
+    const separator4 = document.createElement('div');
+    separator4.addClass('tts-separator');
+    mainControls.appendChild(separator4);
 
     // 对话模式区
     mainControls.appendChild(this.dialogueButton);
