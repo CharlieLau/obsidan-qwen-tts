@@ -13,9 +13,11 @@ export class MultiVoicePlayer {
   private isPaused: boolean = false;
   private mergedAudioUrl: string | null = null;
   private onProgressUpdate?: (current: number, total: number) => void;
+  private getPlaybackSpeed: () => number;
 
-  constructor(engineManager: TTSEngineManager) {
+  constructor(engineManager: TTSEngineManager, getPlaybackSpeed: () => number) {
     this.engineManager = engineManager;
+    this.getPlaybackSpeed = getPlaybackSpeed;
   }
 
   /**
@@ -59,6 +61,9 @@ export class MultiVoicePlayer {
   private async playMergedAudio(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.currentAudio = new Audio(this.mergedAudioUrl!);
+
+      // Apply playback speed
+      this.currentAudio.playbackRate = this.getPlaybackSpeed();
 
       // 监听时间更新，更新进度条
       this.currentAudio.ontimeupdate = () => {

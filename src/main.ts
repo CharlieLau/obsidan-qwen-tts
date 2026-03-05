@@ -57,7 +57,10 @@ export default class TTSPlugin extends Plugin {
       this.settings.qwen.podcastVoices
     );
     this.dialogueFileManager = new DialogueFileManager(this.app);
-    this.multiVoicePlayer = new MultiVoicePlayer(this.engineManager);
+    this.multiVoicePlayer = new MultiVoicePlayer(
+      this.engineManager,
+      () => this.settings.playbackSpeed
+    );
 
     // 注册设置面板
     this.addSettingTab(new TTSSettingTab(this.app, this));
