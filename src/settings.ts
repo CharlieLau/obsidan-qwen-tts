@@ -38,6 +38,7 @@ export interface TTSSettings {
     apiKey: string;
   };
   speechRate: number;
+  playbackSpeed: number;
 }
 
 export const DEFAULT_SETTINGS: TTSSettings = {
@@ -83,7 +84,8 @@ export const DEFAULT_SETTINGS: TTSSettings = {
   openai: {
     apiKey: ''
   },
-  speechRate: 1.0
+  speechRate: 1.0,
+  playbackSpeed: 1.0
 };
 
 export class TTSSettingTab extends PluginSettingTab {
