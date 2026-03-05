@@ -50,14 +50,9 @@ export default class TTSPlugin extends Plugin {
     // 初始化对话模块
     this.dialogueGenerator = new DialogueGenerator(
       this.settings.qwen.apiKey,
-      this.settings.qwen.dialogueModel,
-      this.settings.qwen.dialogueMode
+      this.settings.qwen.dialogueModel
     );
-    this.dialogueParser = new DialogueParser(
-      this.settings.qwen.dialogueMode,
-      this.settings.qwen.educationVoices,
-      this.settings.qwen.podcastVoices
-    );
+    this.dialogueParser = new DialogueParser();
     this.dialogueFileManager = new DialogueFileManager(this.app);
     this.multiVoicePlayer = new MultiVoicePlayer(
       this.engineManager,
@@ -156,18 +151,35 @@ export default class TTSPlugin extends Plugin {
       this.settings.qwen.voiceList = DEFAULT_SETTINGS.qwen.voiceList;
     }
 
-    // 兼容旧版本：如果对话模式配置不存在，使用默认值
-    if (!this.settings.qwen.dialogueMode) {
-      this.settings.qwen.dialogueMode = DEFAULT_SETTINGS.qwen.dialogueMode;
+    // 兼容旧版本：如果 templateVoices 不存在，使用默认值
+    if (!this.settings.templateVoices) {
+      this.settings.templateVoices = DEFAULT_SETTINGS.templateVoices;
     }
-    if (!this.settings.qwen.educationVoices) {
-      this.settings.qwen.educationVoices = DEFAULT_SETTINGS.qwen.educationVoices;
-    }
-    if (!this.settings.qwen.podcastVoices) {
-      this.settings.qwen.podcastVoices = DEFAULT_SETTINGS.qwen.podcastVoices;
-    }
+
+    // 兼容旧版本：如果 dialogueModel 不存在，使用默认值
     if (!this.settings.qwen.dialogueModel) {
       this.settings.qwen.dialogueModel = DEFAULT_SETTINGS.qwen.dialogueModel;
+    }
+
+    // 迁移旧的 dialogueMode 配置到新的 templateVoices 结构
+    if ((loadedData as any)?.qwen?.dialogueMode) {
+      const oldMode = (loadedData as any).qwen.dialogueMode;
+      if (oldMode === 'education' && (loadedData as any).qwen.educationVoices) {
+        const oldVoices = (loadedData as any).qwen.educationVoices;
+        this.settings.templateVoices.classroom = [
+          oldVoices.host || 'Ethan',
+          oldVoices.curious || 'Cherry',
+          oldVoices.critical || 'Serena'
+        ];
+      } else if (oldMode === 'podcast' && (loadedData as any).qwen.podcastVoices) {
+        const oldVoices = (loadedData as any).qwen.podcastVoices;
+        this.settings.templateVoices.duo = [
+          oldVoices.host1 || 'Moon',
+          oldVoices.host2 || 'Maia'
+        ];
+      }
+      // 保存迁移后的配置
+      await this.saveData(this.settings);
     }
   }
 

@@ -424,7 +424,8 @@ export class TTSController {
       const configModal = new DialogueConfigModal(
         this.plugin.app,
         this.plugin.settings.dialogueTemplate,
-        this.plugin.settings.dialogueStyle
+        this.plugin.settings.dialogueStyle,
+        this.plugin.settings.templateVoices
       );
       configModal.open();
 
@@ -616,7 +617,7 @@ export class TTSController {
       // TODO: 从 frontmatter 读取 templateId，然后加载对应模板
       // 暂时使用当前选择的模板
       const { DialogueTemplateManager } = await import('../dialogue/dialogue-template-manager');
-      const templateManager2 = new DialogueTemplateManager();
+      const templateManager2 = new DialogueTemplateManager(this.plugin.settings.templateVoices);
       const template2 = templateManager2.getTemplate(this.plugin.settings.dialogueTemplate);
       if (template2) {
         this.plugin.dialogueParser.setTemplate(template2);

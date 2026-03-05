@@ -8,7 +8,7 @@ export class AudioMerger {
   private apiKey: string;
   private model: string;
   private readonly apiEndpoint = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation';
-  private readonly audioFolder = '对话记录/audio-cache';
+  private readonly audioFolder = '.obsidian/plugins/obsidian-tts/audio-cache';
 
   constructor(app: App, apiKey: string, model: string = 'qwen3-tts-instruct-flash') {
     this.app = app;
@@ -20,12 +20,27 @@ export class AudioMerger {
    * 确保音频目录存在
    */
   private async ensureAudioFolderExists(): Promise<void> {
+    console.log('Checking if audio folder exists:', this.audioFolder);
     const folderExists = await this.app.vault.adapter.exists(this.audioFolder);
+    console.log('Folder exists:', folderExists);
+
     if (!folderExists) {
+      console.log('Creating audio folder...');
       await this.app.vault.adapter.mkdir(this.audioFolder);
+      console.log('Audio folder created');
+
+      // 等待目录创建完成
+      await this.sleep(100);
+
+      // 验证目录是否真的创建了
+      const verifyExists = await this.app.vault.adapter.exists(this.audioFolder);
+      console.log('Folder exists after creation:', verifyExists);
     }
   }
 
+  /**
+   * 生成并合并完整对话音频
+   */
   /**
    * 生成并合并完整对话音频
    */
@@ -64,11 +79,23 @@ export class AudioMerger {
     // 合并所有音频
     const mergedAudio = await this.mergeAudioChunks(audioChunks);
 
-    // 保存合并后的音频
+    // 保存到文件系统
     const audioPath = this.getAudioPath(dialoguePath);
-    await this.app.vault.adapter.writeBinary(audioPath, mergedAudio);
+    console.log('Saving audio to:', audioPath, 'size:', mergedAudio.byteLength);
 
-    return audioPath;
+    try {
+      await this.app.vault.adapter.writeBinary(audioPath, mergedAudio);
+      console.log('Audio saved successfully');
+    } catch (error) {
+      console.error('Failed to save audio file:', error);
+      // 保存失败不影响播放，继续返回 Blob URL
+    }
+
+    // 创建 Blob URL 返回
+    const blob = new Blob([mergedAudio], { type: 'audio/wav' });
+    const blobUrl = URL.createObjectURL(blob);
+
+    return blobUrl;
   }
 
   /**
@@ -197,26 +224,32 @@ export class AudioMerger {
   /**
    * 检查音频文件是否存在
    */
+  /**
+   * 检查音频文件是否存在
+   */
   async hasAudioFile(dialoguePath: string): Promise<boolean> {
     const audioPath = this.getAudioPath(dialoguePath);
-    return await this.app.vault.adapter.exists(audioPath);
+    try {
+      return await this.app.vault.adapter.exists(audioPath);
+    } catch (error) {
+      console.warn('Error checking audio file:', error);
+      return false;
+    }
   }
 
+  /**
+   * 加载音频文件（带重试机制）
+   */
   /**
    * 加载音频文件
    */
   async loadAudioFile(dialoguePath: string): Promise<string> {
     const audioPath = this.getAudioPath(dialoguePath);
+    console.log('Loading cached audio from:', audioPath);
 
     try {
-      // 检查文件是否存在
-      const exists = await this.app.vault.adapter.exists(audioPath);
-      if (!exists) {
-        throw new Error(`音频文件不存在: ${audioPath}`);
-      }
-
-      // 读取音频数据
       const audioData = await this.app.vault.adapter.readBinary(audioPath);
+      console.log('Loaded cached audio, size:', audioData.byteLength);
 
       // 创建 Blob URL
       const blob = new Blob([audioData], { type: 'audio/wav' });
@@ -224,8 +257,8 @@ export class AudioMerger {
 
       return url;
     } catch (error) {
-      console.error('Failed to load audio file:', audioPath, error);
-      throw new Error(`无法加载音频文件: ${error.message}`);
+      console.error('Failed to load cached audio:', error);
+      throw new Error(`无法加载音频缓存: ${error.message}`);
     }
   }
 

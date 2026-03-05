@@ -21,18 +21,14 @@ export interface TTSSettings {
     customVoice: string;
     voiceList: Array<{ key: string; value: string; desc?: string }>;
     dialogueModel: string;
-    dialogueMode: 'education' | 'podcast';
-    // 教育模式音色配置
-    educationVoices: {
-      host: string;      // 主讲人
-      curious: string;   // 好奇学生
-      critical: string;  // 批判学生
-    };
-    // 播客模式音色配置
-    podcastVoices: {
-      host1: string;     // 主播A
-      host2: string;     // 主播B
-    };
+  };
+  // 模板音色配置
+  templateVoices: {
+    solo: string[];       // 单人讲解：[讲解者]
+    duo: string[];        // 双人对话：[对话者A, 对话者B]
+    classroom: string[];  // 三人课堂：[讲师, 好奇学生, 批判学生]
+    debate: string[];     // 双人辩论：[正方, 反方]
+    interview: string[];  // 访谈模式：[主持人, 嘉宾]
   };
   openai: {
     apiKey: string;
@@ -71,17 +67,14 @@ export const DEFAULT_SETTINGS: TTSSettings = {
       { key: 'Nofish', value: 'Nofish (不吃鱼)', desc: '不会翘舌音的设计师（男性）' },
       { key: 'Bella', value: 'Bella (萌宝)', desc: '喝酒不打醉拳的小萝莉（女性）' }
     ],
-    dialogueModel: 'qwen3.5-plus',
-    dialogueMode: 'education',
-    educationVoices: {
-      host: 'Ethan',      // 主讲人 - 稳重男声
-      curious: 'Cherry',  // 好奇学生 - 活泼女声
-      critical: 'Serena'  // 批判学生 - 理性女声
-    },
-    podcastVoices: {
-      host1: 'Moon',      // 主播A - 率性帅气男声
-      host2: 'Maia'       // 主播B - 知性温柔女声
-    }
+    dialogueModel: 'qwen3.5-plus'
+  },
+  templateVoices: {
+    solo: ['Ethan'],                           // 单人讲解：[讲解者]
+    duo: ['Cherry', 'Serena'],                 // 双人对话：[对话者A, 对话者B]
+    classroom: ['Ethan', 'Cherry', 'Serena'],  // 三人课堂：[讲师, 好奇学生, 批判学生]
+    debate: ['Ethan', 'Kai'],                  // 双人辩论：[正方, 反方]
+    interview: ['Cherry', 'Ethan']             // 访谈模式：[主持人, 嘉宾]
   },
   openai: {
     apiKey: ''
@@ -138,6 +131,36 @@ export class TTSSettingTab extends PluginSettingTab {
 
     // 根据选择的引擎显示对应的配置
     this.displayEngineSettings(containerEl);
+  }
+
+  private displayTemplateVoiceSettings(
+    containerEl: HTMLElement,
+    templateKey: 'solo' | 'duo' | 'classroom' | 'debate' | 'interview',
+    templateName: string,
+    roleNames: string[]
+  ): void {
+    const section = containerEl.createEl('div', { cls: 'template-voice-section' });
+    section.style.marginBottom = '20px';
+    section.style.paddingBottom = '15px';
+    section.style.borderBottom = '1px solid var(--background-modifier-border)';
+
+    section.createEl('h5', { text: `${templateName}` }).style.marginBottom = '10px';
+
+    roleNames.forEach((roleName, index) => {
+      new Setting(section)
+        .setName(`${roleName}音色`)
+        .addDropdown(dropdown => {
+          this.plugin.settings.qwen.voiceList.forEach(voice => {
+            dropdown.addOption(voice.key, voice.value);
+          });
+          return dropdown
+            .setValue(this.plugin.settings.templateVoices[templateKey][index] || 'Cherry')
+            .onChange(async (value) => {
+              this.plugin.settings.templateVoices[templateKey][index] = value;
+              await this.plugin.saveSettings();
+            });
+        });
+    });
   }
 
   private createVoiceListItem(containerEl: HTMLElement, voice: { key: string; value: string; desc?: string }, index: number): void {
@@ -271,103 +294,18 @@ export class TTSSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }));
 
-      new Setting(containerEl)
-        .setName('对话模式')
-        .setDesc('选择对话风格：教育模式（三人课堂）或播客模式（双人聊天）')
-        .addDropdown(dropdown => dropdown
-          .addOption('education', '📚 教育模式（主讲人+学生）')
-          .addOption('podcast', '🎙️ 播客模式（双主播闲聊）')
-          .setValue(this.plugin.settings.qwen.dialogueMode)
-          .onChange(async (value) => {
-            this.plugin.settings.qwen.dialogueMode = value as 'education' | 'podcast';
-            await this.plugin.saveSettings();
-            this.display(); // 重新渲染以显示对应的音色配置
-          }));
+      // 对话模板音色配置
+      containerEl.createEl('h4', { text: '对话模板音色配置' });
+      containerEl.createEl('div', {
+        cls: 'setting-item-description',
+        text: '为每个对话模板配置音色。选择的音色将按顺序分配给模板中的角色。'
+      }).style.marginBottom = '15px';
 
-      // 教育模式音色配置
-      if (this.plugin.settings.qwen.dialogueMode === 'education') {
-        containerEl.createEl('h4', { text: '教育模式音色配置' });
-
-        new Setting(containerEl)
-          .setName('主讲人音色')
-          .setDesc('负责讲解核心内容的老师')
-          .addDropdown(dropdown => {
-            this.plugin.settings.qwen.voiceList.forEach(voice => {
-              dropdown.addOption(voice.key, voice.value);
-            });
-            return dropdown
-              .setValue(this.plugin.settings.qwen.educationVoices.host)
-              .onChange(async (value) => {
-                this.plugin.settings.qwen.educationVoices.host = value;
-                await this.plugin.saveSettings();
-              });
-          });
-
-        new Setting(containerEl)
-          .setName('好奇学生音色')
-          .setDesc('提出基础问题的学习者')
-          .addDropdown(dropdown => {
-            this.plugin.settings.qwen.voiceList.forEach(voice => {
-              dropdown.addOption(voice.key, voice.value);
-            });
-            return dropdown
-              .setValue(this.plugin.settings.qwen.educationVoices.curious)
-              .onChange(async (value) => {
-                this.plugin.settings.qwen.educationVoices.curious = value;
-                await this.plugin.saveSettings();
-              });
-          });
-
-        new Setting(containerEl)
-          .setName('批判学生音色')
-          .setDesc('提出深度问题的学习者')
-          .addDropdown(dropdown => {
-            this.plugin.settings.qwen.voiceList.forEach(voice => {
-              dropdown.addOption(voice.key, voice.value);
-            });
-            return dropdown
-              .setValue(this.plugin.settings.qwen.educationVoices.critical)
-              .onChange(async (value) => {
-                this.plugin.settings.qwen.educationVoices.critical = value;
-                await this.plugin.saveSettings();
-              });
-          });
-      }
-
-      // 播客模式音色配置
-      if (this.plugin.settings.qwen.dialogueMode === 'podcast') {
-        containerEl.createEl('h4', { text: '播客模式音色配置' });
-
-        new Setting(containerEl)
-          .setName('主播A音色')
-          .setDesc('博主本人，分享见解和经验')
-          .addDropdown(dropdown => {
-            this.plugin.settings.qwen.voiceList.forEach(voice => {
-              dropdown.addOption(voice.key, voice.value);
-            });
-            return dropdown
-              .setValue(this.plugin.settings.qwen.podcastVoices.host1)
-              .onChange(async (value) => {
-                this.plugin.settings.qwen.podcastVoices.host1 = value;
-                await this.plugin.saveSettings();
-              });
-          });
-
-        new Setting(containerEl)
-          .setName('主播B音色')
-          .setDesc('好友搭档，提问互动')
-          .addDropdown(dropdown => {
-            this.plugin.settings.qwen.voiceList.forEach(voice => {
-              dropdown.addOption(voice.key, voice.value);
-            });
-            return dropdown
-              .setValue(this.plugin.settings.qwen.podcastVoices.host2)
-              .onChange(async (value) => {
-                this.plugin.settings.qwen.podcastVoices.host2 = value;
-                await this.plugin.saveSettings();
-              });
-          });
-      }
+      this.displayTemplateVoiceSettings(containerEl, 'solo', '单人讲解', ['讲解者']);
+      this.displayTemplateVoiceSettings(containerEl, 'duo', '双人对话', ['对话者A', '对话者B']);
+      this.displayTemplateVoiceSettings(containerEl, 'classroom', '三人课堂', ['讲师', '好奇学生', '批判学生']);
+      this.displayTemplateVoiceSettings(containerEl, 'debate', '双人辩论', ['正方', '反方']);
+      this.displayTemplateVoiceSettings(containerEl, 'interview', '访谈模式', ['主持人', '嘉宾']);
 
       new Setting(containerEl)
         .setName('音色选择')

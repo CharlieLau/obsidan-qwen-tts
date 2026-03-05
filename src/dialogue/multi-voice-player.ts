@@ -82,10 +82,22 @@ export class MultiVoicePlayer {
         resolve();
       };
 
-      this.currentAudio.onerror = (event) => {
+      this.currentAudio.onerror = (event: Event | string) => {
         this.isPlaying = false;
+        let errorDetails = 'Unknown error';
+        let audioSrc = '';
+
+        if (typeof event !== 'string' && event.target) {
+          const audio = event.target as HTMLAudioElement;
+          audioSrc = audio.src;
+          if (audio.error) {
+            errorDetails = `Code: ${audio.error.code}, Message: ${audio.error.message}`;
+          }
+        }
+
+        console.error('Audio playback error:', errorDetails, 'Audio src:', audioSrc);
         this.cleanup();
-        reject(new Error(`音频播放错误: ${event}`));
+        reject(new Error(`音频播放错误: ${errorDetails}`));
       };
 
       this.currentAudio.play().catch(reject);

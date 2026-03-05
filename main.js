@@ -32,8 +32,22 @@ var DialogueTemplateManager;
 var init_dialogue_template_manager = __esm({
   "src/dialogue/dialogue-template-manager.ts"() {
     DialogueTemplateManager = class {
-      constructor() {
+      constructor(voiceConfig) {
         this.templates = /* @__PURE__ */ new Map();
+        this.voiceConfig = voiceConfig || {
+          solo: ["Ethan"],
+          duo: ["Cherry", "Serena"],
+          classroom: ["Ethan", "Cherry", "Serena"],
+          debate: ["Ethan", "Kai"],
+          interview: ["Cherry", "Ethan"]
+        };
+        this.initializeTemplates();
+      }
+      /**
+       * 更新音色配置并重新初始化模板
+       */
+      updateVoiceConfig(voiceConfig) {
+        this.voiceConfig = voiceConfig;
         this.initializeTemplates();
       }
       initializeTemplates() {
@@ -45,7 +59,7 @@ var init_dialogue_template_manager = __esm({
           roles: [
             {
               name: "\u8BB2\u89E3\u8005",
-              voice: "Ethan",
+              voice: this.voiceConfig.solo[0] || "Ethan",
               personality: "\u6E05\u6670\u3001\u6709\u6761\u7406\u5730\u8BB2\u89E3\u5185\u5BB9"
             }
           ]
@@ -58,12 +72,12 @@ var init_dialogue_template_manager = __esm({
           roles: [
             {
               name: "\u5BF9\u8BDD\u8005A",
-              voice: "Cherry",
+              voice: this.voiceConfig.duo[0] || "Cherry",
               personality: "\u6D3B\u6CFC\u3001\u597D\u5947"
             },
             {
               name: "\u5BF9\u8BDD\u8005B",
-              voice: "Serena",
+              voice: this.voiceConfig.duo[1] || "Serena",
               personality: "\u7406\u6027\u3001\u6E29\u548C"
             }
           ]
@@ -76,17 +90,17 @@ var init_dialogue_template_manager = __esm({
           roles: [
             {
               name: "\u8BB2\u5E08",
-              voice: "Ethan",
+              voice: this.voiceConfig.classroom[0] || "Ethan",
               personality: "\u7ECF\u9A8C\u4E30\u5BCC\uFF0C\u8BB2\u89E3\u6E05\u6670"
             },
             {
               name: "\u597D\u5947\u5B66\u751F",
-              voice: "Cherry",
+              voice: this.voiceConfig.classroom[1] || "Cherry",
               personality: "\u5145\u6EE1\u597D\u5947\uFF0C\u63D0\u51FA\u57FA\u7840\u95EE\u9898"
             },
             {
               name: "\u6279\u5224\u5B66\u751F",
-              voice: "Serena",
+              voice: this.voiceConfig.classroom[2] || "Serena",
               personality: "\u5584\u4E8E\u601D\u8003\uFF0C\u63D0\u51FA\u6DF1\u5EA6\u95EE\u9898"
             }
           ]
@@ -99,12 +113,12 @@ var init_dialogue_template_manager = __esm({
           roles: [
             {
               name: "\u6B63\u65B9",
-              voice: "Ethan",
+              voice: this.voiceConfig.debate[0] || "Ethan",
               personality: "\u575A\u5B9A\u3001\u6709\u529B\u5730\u9610\u8FF0\u89C2\u70B9"
             },
             {
               name: "\u53CD\u65B9",
-              voice: "Kai",
+              voice: this.voiceConfig.debate[1] || "Kai",
               personality: "\u6279\u5224\u6027\u601D\u8003\uFF0C\u63D0\u51FA\u53CD\u9A73"
             }
           ]
@@ -117,12 +131,12 @@ var init_dialogue_template_manager = __esm({
           roles: [
             {
               name: "\u4E3B\u6301\u4EBA",
-              voice: "Cherry",
+              voice: this.voiceConfig.interview[0] || "Cherry",
               personality: "\u5F15\u5BFC\u8BDD\u9898\uFF0C\u63D0\u51FA\u5173\u952E\u95EE\u9898"
             },
             {
               name: "\u5609\u5BBE",
-              voice: "Ethan",
+              voice: this.voiceConfig.interview[1] || "Ethan",
               personality: "\u5206\u4EAB\u89C1\u89E3\uFF0C\u56DE\u7B54\u95EE\u9898"
             }
           ]
@@ -179,22 +193,19 @@ var DEFAULT_SETTINGS = {
       { key: "Nofish", value: "Nofish (\u4E0D\u5403\u9C7C)", desc: "\u4E0D\u4F1A\u7FD8\u820C\u97F3\u7684\u8BBE\u8BA1\u5E08\uFF08\u7537\u6027\uFF09" },
       { key: "Bella", value: "Bella (\u840C\u5B9D)", desc: "\u559D\u9152\u4E0D\u6253\u9189\u62F3\u7684\u5C0F\u841D\u8389\uFF08\u5973\u6027\uFF09" }
     ],
-    dialogueModel: "qwen3.5-plus",
-    dialogueMode: "education",
-    educationVoices: {
-      host: "Ethan",
-      // 主讲人 - 稳重男声
-      curious: "Cherry",
-      // 好奇学生 - 活泼女声
-      critical: "Serena"
-      // 批判学生 - 理性女声
-    },
-    podcastVoices: {
-      host1: "Moon",
-      // 主播A - 率性帅气男声
-      host2: "Maia"
-      // 主播B - 知性温柔女声
-    }
+    dialogueModel: "qwen3.5-plus"
+  },
+  templateVoices: {
+    solo: ["Ethan"],
+    // 单人讲解：[讲解者]
+    duo: ["Cherry", "Serena"],
+    // 双人对话：[对话者A, 对话者B]
+    classroom: ["Ethan", "Cherry", "Serena"],
+    // 三人课堂：[讲师, 好奇学生, 批判学生]
+    debate: ["Ethan", "Kai"],
+    // 双人辩论：[正方, 反方]
+    interview: ["Cherry", "Ethan"]
+    // 访谈模式：[主持人, 嘉宾]
   },
   openai: {
     apiKey: ""
@@ -223,6 +234,24 @@ var TTSSettingTab = class extends import_obsidian.PluginSettingTab {
       await this.plugin.saveSettings();
     }));
     this.displayEngineSettings(containerEl);
+  }
+  displayTemplateVoiceSettings(containerEl, templateKey, templateName, roleNames) {
+    const section = containerEl.createEl("div", { cls: "template-voice-section" });
+    section.style.marginBottom = "20px";
+    section.style.paddingBottom = "15px";
+    section.style.borderBottom = "1px solid var(--background-modifier-border)";
+    section.createEl("h5", { text: `${templateName}` }).style.marginBottom = "10px";
+    roleNames.forEach((roleName, index) => {
+      new import_obsidian.Setting(section).setName(`${roleName}\u97F3\u8272`).addDropdown((dropdown) => {
+        this.plugin.settings.qwen.voiceList.forEach((voice) => {
+          dropdown.addOption(voice.key, voice.value);
+        });
+        return dropdown.setValue(this.plugin.settings.templateVoices[templateKey][index] || "Cherry").onChange(async (value) => {
+          this.plugin.settings.templateVoices[templateKey][index] = value;
+          await this.plugin.saveSettings();
+        });
+      });
+    });
   }
   createVoiceListItem(containerEl, voice, index) {
     const setting = new import_obsidian.Setting(containerEl).setClass("tts-voice-list-item").addText((text) => text.setPlaceholder("Key (\u5982 Cherry)").setValue(voice.key).onChange(async (value) => {
@@ -287,62 +316,16 @@ var TTSSettingTab = class extends import_obsidian.PluginSettingTab {
         this.plugin.settings.qwen.dialogueModel = value;
         await this.plugin.saveSettings();
       }));
-      new import_obsidian.Setting(containerEl).setName("\u5BF9\u8BDD\u6A21\u5F0F").setDesc("\u9009\u62E9\u5BF9\u8BDD\u98CE\u683C\uFF1A\u6559\u80B2\u6A21\u5F0F\uFF08\u4E09\u4EBA\u8BFE\u5802\uFF09\u6216\u64AD\u5BA2\u6A21\u5F0F\uFF08\u53CC\u4EBA\u804A\u5929\uFF09").addDropdown((dropdown) => dropdown.addOption("education", "\u{1F4DA} \u6559\u80B2\u6A21\u5F0F\uFF08\u4E3B\u8BB2\u4EBA+\u5B66\u751F\uFF09").addOption("podcast", "\u{1F399}\uFE0F \u64AD\u5BA2\u6A21\u5F0F\uFF08\u53CC\u4E3B\u64AD\u95F2\u804A\uFF09").setValue(this.plugin.settings.qwen.dialogueMode).onChange(async (value) => {
-        this.plugin.settings.qwen.dialogueMode = value;
-        await this.plugin.saveSettings();
-        this.display();
-      }));
-      if (this.plugin.settings.qwen.dialogueMode === "education") {
-        containerEl.createEl("h4", { text: "\u6559\u80B2\u6A21\u5F0F\u97F3\u8272\u914D\u7F6E" });
-        new import_obsidian.Setting(containerEl).setName("\u4E3B\u8BB2\u4EBA\u97F3\u8272").setDesc("\u8D1F\u8D23\u8BB2\u89E3\u6838\u5FC3\u5185\u5BB9\u7684\u8001\u5E08").addDropdown((dropdown) => {
-          this.plugin.settings.qwen.voiceList.forEach((voice) => {
-            dropdown.addOption(voice.key, voice.value);
-          });
-          return dropdown.setValue(this.plugin.settings.qwen.educationVoices.host).onChange(async (value) => {
-            this.plugin.settings.qwen.educationVoices.host = value;
-            await this.plugin.saveSettings();
-          });
-        });
-        new import_obsidian.Setting(containerEl).setName("\u597D\u5947\u5B66\u751F\u97F3\u8272").setDesc("\u63D0\u51FA\u57FA\u7840\u95EE\u9898\u7684\u5B66\u4E60\u8005").addDropdown((dropdown) => {
-          this.plugin.settings.qwen.voiceList.forEach((voice) => {
-            dropdown.addOption(voice.key, voice.value);
-          });
-          return dropdown.setValue(this.plugin.settings.qwen.educationVoices.curious).onChange(async (value) => {
-            this.plugin.settings.qwen.educationVoices.curious = value;
-            await this.plugin.saveSettings();
-          });
-        });
-        new import_obsidian.Setting(containerEl).setName("\u6279\u5224\u5B66\u751F\u97F3\u8272").setDesc("\u63D0\u51FA\u6DF1\u5EA6\u95EE\u9898\u7684\u5B66\u4E60\u8005").addDropdown((dropdown) => {
-          this.plugin.settings.qwen.voiceList.forEach((voice) => {
-            dropdown.addOption(voice.key, voice.value);
-          });
-          return dropdown.setValue(this.plugin.settings.qwen.educationVoices.critical).onChange(async (value) => {
-            this.plugin.settings.qwen.educationVoices.critical = value;
-            await this.plugin.saveSettings();
-          });
-        });
-      }
-      if (this.plugin.settings.qwen.dialogueMode === "podcast") {
-        containerEl.createEl("h4", { text: "\u64AD\u5BA2\u6A21\u5F0F\u97F3\u8272\u914D\u7F6E" });
-        new import_obsidian.Setting(containerEl).setName("\u4E3B\u64ADA\u97F3\u8272").setDesc("\u535A\u4E3B\u672C\u4EBA\uFF0C\u5206\u4EAB\u89C1\u89E3\u548C\u7ECF\u9A8C").addDropdown((dropdown) => {
-          this.plugin.settings.qwen.voiceList.forEach((voice) => {
-            dropdown.addOption(voice.key, voice.value);
-          });
-          return dropdown.setValue(this.plugin.settings.qwen.podcastVoices.host1).onChange(async (value) => {
-            this.plugin.settings.qwen.podcastVoices.host1 = value;
-            await this.plugin.saveSettings();
-          });
-        });
-        new import_obsidian.Setting(containerEl).setName("\u4E3B\u64ADB\u97F3\u8272").setDesc("\u597D\u53CB\u642D\u6863\uFF0C\u63D0\u95EE\u4E92\u52A8").addDropdown((dropdown) => {
-          this.plugin.settings.qwen.voiceList.forEach((voice) => {
-            dropdown.addOption(voice.key, voice.value);
-          });
-          return dropdown.setValue(this.plugin.settings.qwen.podcastVoices.host2).onChange(async (value) => {
-            this.plugin.settings.qwen.podcastVoices.host2 = value;
-            await this.plugin.saveSettings();
-          });
-        });
-      }
+      containerEl.createEl("h4", { text: "\u5BF9\u8BDD\u6A21\u677F\u97F3\u8272\u914D\u7F6E" });
+      containerEl.createEl("div", {
+        cls: "setting-item-description",
+        text: "\u4E3A\u6BCF\u4E2A\u5BF9\u8BDD\u6A21\u677F\u914D\u7F6E\u97F3\u8272\u3002\u9009\u62E9\u7684\u97F3\u8272\u5C06\u6309\u987A\u5E8F\u5206\u914D\u7ED9\u6A21\u677F\u4E2D\u7684\u89D2\u8272\u3002"
+      }).style.marginBottom = "15px";
+      this.displayTemplateVoiceSettings(containerEl, "solo", "\u5355\u4EBA\u8BB2\u89E3", ["\u8BB2\u89E3\u8005"]);
+      this.displayTemplateVoiceSettings(containerEl, "duo", "\u53CC\u4EBA\u5BF9\u8BDD", ["\u5BF9\u8BDD\u8005A", "\u5BF9\u8BDD\u8005B"]);
+      this.displayTemplateVoiceSettings(containerEl, "classroom", "\u4E09\u4EBA\u8BFE\u5802", ["\u8BB2\u5E08", "\u597D\u5947\u5B66\u751F", "\u6279\u5224\u5B66\u751F"]);
+      this.displayTemplateVoiceSettings(containerEl, "debate", "\u53CC\u4EBA\u8FA9\u8BBA", ["\u6B63\u65B9", "\u53CD\u65B9"]);
+      this.displayTemplateVoiceSettings(containerEl, "interview", "\u8BBF\u8C08\u6A21\u5F0F", ["\u4E3B\u6301\u4EBA", "\u5609\u5BBE"]);
       new import_obsidian.Setting(containerEl).setName("\u97F3\u8272\u9009\u62E9").setDesc("\u9009\u62E9\u8BED\u97F3\u5408\u6210\u7684\u97F3\u8272").addDropdown((dropdown) => {
         this.plugin.settings.qwen.voiceList.forEach((voice) => {
           dropdown.addOption(voice.key, voice.value);
@@ -7345,10 +7328,10 @@ var DialogueOptionsModal = class extends import_obsidian5.Modal {
 var import_obsidian6 = require("obsidian");
 init_dialogue_template_manager();
 var DialogueConfigModal = class extends import_obsidian6.Modal {
-  constructor(app, defaultTemplate, defaultStyle) {
+  constructor(app, defaultTemplate, defaultStyle, voiceConfig) {
     super(app);
     this.resolvePromise = null;
-    this.templateManager = new DialogueTemplateManager();
+    this.templateManager = new DialogueTemplateManager(voiceConfig);
     this.selectedTemplate = defaultTemplate;
     this.selectedStyle = defaultStyle;
   }
@@ -7444,7 +7427,7 @@ var import_obsidian7 = require("obsidian");
 var AudioMerger = class {
   constructor(app, apiKey, model = "qwen3-tts-instruct-flash") {
     this.apiEndpoint = "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation";
-    this.audioFolder = "\u5BF9\u8BDD\u8BB0\u5F55/audio-cache";
+    this.audioFolder = ".obsidian/plugins/obsidian-tts/audio-cache";
     this.app = app;
     this.apiKey = apiKey;
     this.model = model;
@@ -7453,11 +7436,21 @@ var AudioMerger = class {
    * 确保音频目录存在
    */
   async ensureAudioFolderExists() {
+    console.log("Checking if audio folder exists:", this.audioFolder);
     const folderExists = await this.app.vault.adapter.exists(this.audioFolder);
+    console.log("Folder exists:", folderExists);
     if (!folderExists) {
+      console.log("Creating audio folder...");
       await this.app.vault.adapter.mkdir(this.audioFolder);
+      console.log("Audio folder created");
+      await this.sleep(100);
+      const verifyExists = await this.app.vault.adapter.exists(this.audioFolder);
+      console.log("Folder exists after creation:", verifyExists);
     }
   }
+  /**
+   * 生成并合并完整对话音频
+   */
   /**
    * 生成并合并完整对话音频
    */
@@ -7479,8 +7472,16 @@ var AudioMerger = class {
     }
     const mergedAudio = await this.mergeAudioChunks(audioChunks);
     const audioPath = this.getAudioPath(dialoguePath);
-    await this.app.vault.adapter.writeBinary(audioPath, mergedAudio);
-    return audioPath;
+    console.log("Saving audio to:", audioPath, "size:", mergedAudio.byteLength);
+    try {
+      await this.app.vault.adapter.writeBinary(audioPath, mergedAudio);
+      console.log("Audio saved successfully");
+    } catch (error) {
+      console.error("Failed to save audio file:", error);
+    }
+    const blob = new Blob([mergedAudio], { type: "audio/wav" });
+    const blobUrl = URL.createObjectURL(blob);
+    return blobUrl;
   }
   /**
    * 生成单句音频 URL
@@ -7576,27 +7577,36 @@ var AudioMerger = class {
   /**
    * 检查音频文件是否存在
    */
+  /**
+   * 检查音频文件是否存在
+   */
   async hasAudioFile(dialoguePath) {
     const audioPath = this.getAudioPath(dialoguePath);
-    return await this.app.vault.adapter.exists(audioPath);
+    try {
+      return await this.app.vault.adapter.exists(audioPath);
+    } catch (error) {
+      console.warn("Error checking audio file:", error);
+      return false;
+    }
   }
+  /**
+   * 加载音频文件（带重试机制）
+   */
   /**
    * 加载音频文件
    */
   async loadAudioFile(dialoguePath) {
     const audioPath = this.getAudioPath(dialoguePath);
+    console.log("Loading cached audio from:", audioPath);
     try {
-      const exists = await this.app.vault.adapter.exists(audioPath);
-      if (!exists) {
-        throw new Error(`\u97F3\u9891\u6587\u4EF6\u4E0D\u5B58\u5728: ${audioPath}`);
-      }
       const audioData = await this.app.vault.adapter.readBinary(audioPath);
+      console.log("Loaded cached audio, size:", audioData.byteLength);
       const blob = new Blob([audioData], { type: "audio/wav" });
       const url = URL.createObjectURL(blob);
       return url;
     } catch (error) {
-      console.error("Failed to load audio file:", audioPath, error);
-      throw new Error(`\u65E0\u6CD5\u52A0\u8F7D\u97F3\u9891\u6587\u4EF6: ${error.message}`);
+      console.error("Failed to load cached audio:", error);
+      throw new Error(`\u65E0\u6CD5\u52A0\u8F7D\u97F3\u9891\u7F13\u5B58: ${error.message}`);
     }
   }
   /**
@@ -7943,7 +7953,8 @@ var TTSController = class {
       const configModal = new DialogueConfigModal(
         this.plugin.app,
         this.plugin.settings.dialogueTemplate,
-        this.plugin.settings.dialogueStyle
+        this.plugin.settings.dialogueStyle,
+        this.plugin.settings.templateVoices
       );
       configModal.open();
       const config = await configModal.waitForConfig();
@@ -8079,7 +8090,7 @@ var TTSController = class {
         return;
       }
       const { DialogueTemplateManager: DialogueTemplateManager2 } = await Promise.resolve().then(() => (init_dialogue_template_manager(), dialogue_template_manager_exports));
-      const templateManager2 = new DialogueTemplateManager2();
+      const templateManager2 = new DialogueTemplateManager2(this.plugin.settings.templateVoices);
       const template2 = templateManager2.getTemplate(this.plugin.settings.dialogueTemplate);
       if (template2) {
         this.plugin.dialogueParser.setTemplate(template2);
@@ -8131,17 +8142,10 @@ var TTSController = class {
 var import_obsidian9 = require("obsidian");
 init_dialogue_template_manager();
 var DialogueGenerator = class {
-  constructor(apiKey, model = "qwen3.5-plus", mode = "education") {
+  constructor(apiKey, model = "qwen3.5-plus") {
     this.apiEndpoint = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
     this.apiKey = apiKey;
     this.model = model;
-    this.mode = mode;
-  }
-  /**
-   * 设置对话模式
-   */
-  setMode(mode) {
-    this.mode = mode;
   }
   /**
    * 计算对话长度
@@ -8170,134 +8174,6 @@ var DialogueGenerator = class {
         detailLevel: "detailed"
       };
     }
-  }
-  /**
-   * 构建系统 Prompt
-   */
-  buildSystemPrompt() {
-    if (this.mode === "podcast") {
-      return this.buildPodcastPrompt();
-    } else {
-      return this.buildEducationPrompt();
-    }
-  }
-  /**
-   * 教育模式 Prompt
-   */
-  buildEducationPrompt() {
-    return `\u4F60\u662F\u4E00\u4E2A\u6559\u80B2\u5185\u5BB9\u8F6C\u6362\u4E13\u5BB6\u3002\u8BF7\u5C06 Markdown \u6587\u6863\u8F6C\u6362\u6210\u4E09\u4EBA\u5BF9\u8BDD\u5F62\u5F0F\uFF0C\u7528\u4E8E\u8BED\u97F3\u64AD\u653E\u5B66\u4E60\u3002
-
-**\u89D2\u8272\u8BBE\u5B9A**\uFF1A
-- [\u4E3B\u8BB2\u4EBA]\uFF1A\u7ECF\u9A8C\u4E30\u5BCC\u7684\u8001\u5E08\uFF0C\u8D1F\u8D23\u8BB2\u89E3\u6838\u5FC3\u5185\u5BB9\uFF0C\u8BED\u8A00\u6E05\u6670\u3001\u903B\u8F91\u4E25\u5BC6
-- [\u597D\u5947\u5B66\u751F]\uFF1A\u5145\u6EE1\u597D\u5947\u5FC3\u7684\u5B66\u4E60\u8005\uFF0C\u4F1A\u63D0\u51FA\u57FA\u7840\u95EE\u9898\u3001\u8981\u6C42\u4E3E\u4F8B\u8BF4\u660E
-- [\u6279\u5224\u5B66\u751F]\uFF1A\u5584\u4E8E\u601D\u8003\u7684\u5B66\u4E60\u8005\uFF0C\u4F1A\u8D28\u7591\u89C2\u70B9\u3001\u63D0\u51FA\u6DF1\u5EA6\u95EE\u9898\u3001\u63A2\u8BA8\u8FB9\u754C\u60C5\u51B5
-
-**\u5BF9\u8BDD\u7ED3\u6784**\uFF1A
-- \u5F00\u573A\uFF1A\u4E3B\u8BB2\u4EBA\u7B80\u8981\u4ECB\u7ECD\u6587\u6863\u4E3B\u9898\u548C\u7ED3\u6784\uFF081-2\u8F6E\uFF09
-- \u6B63\u6587\uFF1A\u6309\u6587\u6863\u7AE0\u8282\u987A\u5E8F\u5C55\u5F00\uFF0C\u7A7F\u63D2\u5B66\u751F\u63D0\u95EE\uFF08\u4E3B\u4F53\u90E8\u5206\uFF09
-- \u6DF1\u5EA6\u63D0\u95EE\uFF1A\u6279\u5224\u5B66\u751F\u8FDE\u7EED\u63D0\u51FA3-5\u4E2A"\u4E3A\u4EC0\u4E48"\u95EE\u9898\uFF0C\u5C42\u5C42\u6DF1\u5165\uFF083-5\u8F6E\uFF09
-- \u603B\u7ED3\u56DE\u987E\uFF1A\u4E3B\u8BB2\u4EBA\u7CFB\u7EDF\u68B3\u7406\u6838\u5FC3\u8981\u70B9\uFF0C\u63D0\u70BC\u5173\u952E\u6D1E\u5BDF\uFF082-3\u8F6E\uFF09
-
-**\u5BF9\u8BDD\u98CE\u683C**\uFF1A
-- \u81EA\u7136\u6D41\u7545\uFF0C\u50CF\u771F\u5B9E\u7684\u8BFE\u5802\u8BA8\u8BBA
-- \u597D\u5947\u5B66\u751F\u7684\u95EE\u9898\u8981\u7B80\u5355\u76F4\u63A5\uFF08"\u8FD9\u662F\u4EC0\u4E48\u610F\u601D\uFF1F"\u3001"\u80FD\u4E3E\u4E2A\u4F8B\u5B50\u5417\uFF1F"\uFF09
-- \u6279\u5224\u5B66\u751F\u7684\u95EE\u9898\u8981\u6709\u6DF1\u5EA6\uFF08"\u8FD9\u4E2A\u89C2\u70B9\u7684\u524D\u63D0\u662F\u4EC0\u4E48\uFF1F"\u3001"\u6709\u6CA1\u6709\u53CD\u4F8B\uFF1F"\uFF09
-- \u907F\u514D\u751F\u786C\u7684"\u8C22\u8C22\u8001\u5E08"\u7B49\u5BA2\u5957\u8BDD
-
-**\u7ED3\u5C3E\u6DF1\u5EA6\u63D0\u95EE\u793A\u4F8B**\uFF08\u6279\u5224\u5B66\u751F\u4E3B\u5BFC\uFF09\uFF1A
-- "\u4E3A\u4EC0\u4E48\u8FD9\u4E2A\u65B9\u6CD5\u6BD4\u5176\u4ED6\u65B9\u6CD5\u66F4\u6709\u6548\uFF1F"
-- "\u4E3A\u4EC0\u4E48\u4F1A\u51FA\u73B0\u8FD9\u6837\u7684\u95EE\u9898\uFF1F\u6839\u672C\u539F\u56E0\u662F\u4EC0\u4E48\uFF1F"
-- "\u4E3A\u4EC0\u4E48\u8FD9\u4E2A\u539F\u5219\u5728\u5B9E\u8DF5\u4E2D\u5F88\u91CD\u8981\uFF1F"
-- "\u8FD9\u80CC\u540E\u7684\u6DF1\u5C42\u903B\u8F91\u662F\u4EC0\u4E48\uFF1F"
-- "\u5982\u679C\u6539\u53D8\u67D0\u4E2A\u524D\u63D0\uFF0C\u7ED3\u8BBA\u4F1A\u5982\u4F55\u53D8\u5316\uFF1F"
-
-**\u603B\u7ED3\u56DE\u987E\u8981\u6C42**\uFF08\u4E3B\u8BB2\u4EBA\u4E3B\u5BFC\uFF09\uFF1A
-- \u75281-2\u5206\u949F\u7CFB\u7EDF\u68B3\u7406\u6838\u5FC3\u6982\u5FF5
-- \u63D0\u70BC3-5\u4E2A\u5173\u952E\u8981\u70B9
-- \u70B9\u660E\u5B9E\u8DF5\u4EF7\u503C\u548C\u5E94\u7528\u573A\u666F
-- \u7ED9\u51FA\u8BB0\u5FC6\u63D0\u793A\u6216\u53E3\u8BC0
-
-**\u8F93\u51FA\u683C\u5F0F**\uFF1A
-\u4E25\u683C\u4F7F\u7528\u4EE5\u4E0B\u683C\u5F0F\uFF0C\u6BCF\u884C\u4E00\u4E2A\u89D2\u8272\u53D1\u8A00\uFF1A
-[\u4E3B\u8BB2\u4EBA]: \u53D1\u8A00\u5185\u5BB9
-[\u597D\u5947\u5B66\u751F]: \u53D1\u8A00\u5185\u5BB9
-[\u6279\u5224\u5B66\u751F]: \u53D1\u8A00\u5185\u5BB9
-
-**\u91CD\u8981**\uFF1A
-- \u5FC5\u987B\u4F7F\u7528\u65B9\u62EC\u53F7 [] \u5305\u88F9\u89D2\u8272\u540D
-- \u89D2\u8272\u540D\u540E\u5FC5\u987B\u6709\u5192\u53F7\u548C\u7A7A\u683C
-- \u4E0D\u8981\u6DFB\u52A0\u4EFB\u4F55\u524D\u8A00\u3001\u540E\u8BB0\u6216\u89E3\u91CA
-- \u76F4\u63A5\u8F93\u51FA\u5BF9\u8BDD\u5185\u5BB9`;
-  }
-  /**
-   * 播客模式 Prompt
-   */
-  buildPodcastPrompt() {
-    return `\u4F60\u662F\u4E00\u4E2A\u64AD\u5BA2\u5185\u5BB9\u521B\u4F5C\u4E13\u5BB6\u3002\u8BF7\u5C06 Markdown \u6587\u6863\u8F6C\u6362\u6210\u8F7B\u677E\u6709\u8DA3\u7684\u53CC\u4EBA\u64AD\u5BA2\u5BF9\u8BDD\uFF0C\u7528\u4E8E\u8BED\u97F3\u64AD\u653E\u3002
-
-**\u89D2\u8272\u8BBE\u5B9A**\uFF1A
-- [\u4E3B\u64ADA]\uFF1A\u535A\u4E3B\u672C\u4EBA\uFF0C\u5206\u4EAB\u81EA\u5DF1\u7684\u89C1\u89E3\u548C\u7ECF\u9A8C\uFF0C\u8BED\u8A00\u8F7B\u677E\u5E7D\u9ED8\u3001\u6709\u4E2A\u4EBA\u98CE\u683C
-- [\u4E3B\u64ADB]\uFF1A\u597D\u53CB\u6216\u642D\u6863\uFF0C\u8D1F\u8D23\u63D0\u95EE\u4E92\u52A8\u3001\u8865\u5145\u89C2\u70B9\u3001\u8C03\u8282\u6C14\u6C1B
-
-**\u5BF9\u8BDD\u7ED3\u6784**\uFF1A
-- \u5F00\u573A\uFF1A\u8F7B\u677E\u7684\u5BD2\u6684\uFF0C\u5F15\u51FA\u4ECA\u5929\u7684\u8BDD\u9898\uFF08"\u563F\uFF0C\u4ECA\u5929\u804A\u804A..."\uFF09\uFF081-2\u8F6E\uFF09
-- \u6B63\u6587\uFF1A\u56F4\u7ED5\u6587\u6863\u5185\u5BB9\u81EA\u7136\u5C55\u5F00\uFF0C\u50CF\u670B\u53CB\u804A\u5929\uFF08\u4E3B\u4F53\u90E8\u5206\uFF09
-- \u6DF1\u5EA6\u63A2\u8BA8\uFF1A\u4E3B\u64ADB\u8FDE\u7EED\u8FFD\u95EE"\u4E3A\u4EC0\u4E48"\uFF0C\u6316\u6398\u6DF1\u5C42\u539F\u56E0\uFF083-5\u8F6E\uFF09
-- \u603B\u7ED3\u5347\u534E\uFF1A\u4E3B\u64ADA\u603B\u7ED3\u6838\u5FC3\u89C2\u70B9\uFF0C\u5206\u4EAB\u4E2A\u4EBA\u611F\u609F\u548C\u884C\u52A8\u5EFA\u8BAE\uFF082-3\u8F6E\uFF09
-- \u7ED3\u5C3E\uFF1A\u9080\u8BF7\u542C\u4F17\u4E92\u52A8\uFF08"\u4F60\u600E\u4E48\u770B\uFF1F\u6B22\u8FCE\u7559\u8A00"\uFF09\uFF081\u8F6E\uFF09
-
-**\u5BF9\u8BDD\u98CE\u683C**\uFF1A
-- \u8F7B\u677E\u968F\u610F\uFF0C\u50CF\u670B\u53CB\u804A\u5929\uFF0C\u53EF\u4EE5\u5F00\u73A9\u7B11
-- \u4E3B\u64ADA\u5206\u4EAB\u4E2A\u4EBA\u7ECF\u9A8C\u3001\u6545\u4E8B\u3001\u611F\u609F
-- \u4E3B\u64ADB\u63D0\u95EE\u3001\u9644\u548C\u3001\u8865\u5145\u4E0D\u540C\u89D2\u5EA6\uFF08"\u54C7\uFF0C\u6709\u610F\u601D"\u3001"\u6211\u4E5F\u9047\u5230\u8FC7"\u3001"\u6362\u4E2A\u89D2\u5EA6\u770B..."\uFF09
-- \u53EF\u4EE5\u6709\u53E3\u8BED\u5316\u8868\u8FBE\uFF08"\u55EF"\u3001"\u54C8\u54C8"\u3001"\u5BF9\u5BF9\u5BF9"\uFF09
-- \u53EF\u4EE5\u8DD1\u9898\u3001\u63D2\u5165\u5C0F\u6545\u4E8B\u3001\u5206\u4EAB\u8DA3\u4E8B
-- \u907F\u514D\u8BF4\u6559\uFF0C\u591A\u7528"\u6211\u89C9\u5F97"\u3001"\u6211\u7684\u7ECF\u9A8C\u662F"
-
-**\u8BED\u8A00\u7279\u70B9**\uFF1A
-- \u53E3\u8BED\u5316\uFF1A\u7528"\u54B1\u4EEC"\u3001"\u8FD9\u4E8B\u513F"\u3001"\u633A"\u7B49\u53E3\u8BED\u8BCD
-- \u60C5\u7EEA\u5316\uFF1A\u53EF\u4EE5\u8868\u8FBE\u5174\u594B\u3001\u60CA\u8BB6\u3001\u5171\u9E23\uFF08"\u592A\u68D2\u4E86\uFF01"\u3001"\u786E\u5B9E\uFF01"\uFF09
-- \u4E92\u52A8\u611F\uFF1A\u7ECF\u5E38\u4E92\u76F8\u56DE\u5E94\uFF08"\u4F60\u8BF4\u662F\u5427"\u3001"\u5BF9\u4E0D\u5BF9"\uFF09
-- \u751F\u6D3B\u5316\uFF1A\u8054\u7CFB\u65E5\u5E38\u751F\u6D3B\u573A\u666F\u548C\u4F8B\u5B50
-
-**\u6DF1\u5EA6\u63A2\u8BA8\u793A\u4F8B**\uFF08\u4E3B\u64ADB\u8FFD\u95EE\uFF09\uFF1A
-- "\u4F46\u662F\u4E3A\u4EC0\u4E48\u4F1A\u8FD9\u6837\u5462\uFF1F"
-- "\u8FD9\u80CC\u540E\u7684\u539F\u56E0\u662F\u4EC0\u4E48\uFF1F"
-- "\u4E3A\u4EC0\u4E48\u8FD9\u4E2A\u5BF9\u6211\u4EEC\u5F88\u91CD\u8981\uFF1F"
-- "\u6362\u4E2A\u89D2\u5EA6\u770B\uFF0C\u4E3A\u4EC0\u4E48\u4E0D\u80FD\u7528\u53E6\u4E00\u79CD\u65B9\u5F0F\uFF1F"
-- "\u90A3\u6839\u672C\u539F\u56E0\u5230\u5E95\u662F\u4EC0\u4E48\uFF1F"
-
-**\u603B\u7ED3\u5347\u534E\u8981\u6C42**\uFF08\u4E3B\u64ADA\u4E3B\u5BFC\uFF09\uFF1A
-- \u7528\u81EA\u5DF1\u7684\u8BDD\u91CD\u65B0\u4E32\u8054\u6838\u5FC3\u89C2\u70B9
-- \u5206\u4EAB\u4E2A\u4EBA\u6700\u5927\u7684\u6536\u83B7\u6216\u611F\u609F
-- \u7ED9\u51FA1-3\u4E2A\u5177\u4F53\u7684\u884C\u52A8\u5EFA\u8BAE
-- \u7528\u4E00\u53E5\u8BDD\u6982\u62EC\u4E3B\u9898\u7CBE\u9AD3
-
-**\u8F93\u51FA\u683C\u5F0F**\uFF1A
-\u4E25\u683C\u4F7F\u7528\u4EE5\u4E0B\u683C\u5F0F\uFF0C\u6BCF\u884C\u4E00\u4E2A\u89D2\u8272\u53D1\u8A00\uFF1A
-[\u4E3B\u64ADA]: \u53D1\u8A00\u5185\u5BB9
-[\u4E3B\u64ADB]: \u53D1\u8A00\u5185\u5BB9
-
-**\u91CD\u8981**\uFF1A
-- \u5FC5\u987B\u4F7F\u7528\u65B9\u62EC\u53F7 [] \u5305\u88F9\u89D2\u8272\u540D
-- \u89D2\u8272\u540D\u540E\u5FC5\u987B\u6709\u5192\u53F7\u548C\u7A7A\u683C
-- \u4E0D\u8981\u6DFB\u52A0\u4EFB\u4F55\u524D\u8A00\u3001\u540E\u8BB0\u6216\u89E3\u91CA
-- \u76F4\u63A5\u8F93\u51FA\u5BF9\u8BDD\u5185\u5BB9`;
-  }
-  /**
-   * 构建用户 Prompt
-   */
-  buildUserPrompt(content, length) {
-    return `\u8BF7\u5C06\u4EE5\u4E0B Markdown \u6587\u6863\u8F6C\u6362\u6210\u5BF9\u8BDD\u5F62\u5F0F\u3002
-
-**\u6587\u6863\u5B57\u6570**\uFF1A${content.length} \u5B57
-**\u5BF9\u8BDD\u8981\u6C42**\uFF1A\u751F\u6210\u7EA6 ${length.targetRounds} \u8F6E\u5BF9\u8BDD\uFF08\u7EA6 ${length.estimatedMinutes} \u5206\u949F\uFF09
-**\u8BE6\u7EC6\u7A0B\u5EA6**\uFF1A${length.detailLevel === "brief" ? "\u7B80\u660E\u627C\u8981" : length.detailLevel === "moderate" ? "\u9002\u4E2D\u6DF1\u5EA6" : "\u8BE6\u7EC6\u8BB2\u89E3"}
-
-**\u6587\u6863\u5185\u5BB9**\uFF1A
-${content}
-
-\u8BF7\u5F00\u59CB\u751F\u6210\u5BF9\u8BDD\uFF1A`;
   }
   /**
    * 计算超时时间（根据文档长度）
@@ -8923,14 +8799,9 @@ var TTSPlugin = class extends import_obsidian10.Plugin {
     });
     this.dialogueGenerator = new DialogueGenerator(
       this.settings.qwen.apiKey,
-      this.settings.qwen.dialogueModel,
-      this.settings.qwen.dialogueMode
+      this.settings.qwen.dialogueModel
     );
-    this.dialogueParser = new DialogueParser(
-      this.settings.qwen.dialogueMode,
-      this.settings.qwen.educationVoices,
-      this.settings.qwen.podcastVoices
-    );
+    this.dialogueParser = new DialogueParser();
     this.dialogueFileManager = new DialogueFileManager(this.app);
     this.multiVoicePlayer = new MultiVoicePlayer(
       this.engineManager,
@@ -8996,22 +8867,35 @@ var TTSPlugin = class extends import_obsidian10.Plugin {
     }
   }
   async loadSettings() {
+    var _a2;
     const loadedData = await this.loadData();
     this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
     if (!this.settings.qwen.voiceList || this.settings.qwen.voiceList.length === 0) {
       this.settings.qwen.voiceList = DEFAULT_SETTINGS.qwen.voiceList;
     }
-    if (!this.settings.qwen.dialogueMode) {
-      this.settings.qwen.dialogueMode = DEFAULT_SETTINGS.qwen.dialogueMode;
-    }
-    if (!this.settings.qwen.educationVoices) {
-      this.settings.qwen.educationVoices = DEFAULT_SETTINGS.qwen.educationVoices;
-    }
-    if (!this.settings.qwen.podcastVoices) {
-      this.settings.qwen.podcastVoices = DEFAULT_SETTINGS.qwen.podcastVoices;
+    if (!this.settings.templateVoices) {
+      this.settings.templateVoices = DEFAULT_SETTINGS.templateVoices;
     }
     if (!this.settings.qwen.dialogueModel) {
       this.settings.qwen.dialogueModel = DEFAULT_SETTINGS.qwen.dialogueModel;
+    }
+    if ((_a2 = loadedData == null ? void 0 : loadedData.qwen) == null ? void 0 : _a2.dialogueMode) {
+      const oldMode = loadedData.qwen.dialogueMode;
+      if (oldMode === "education" && loadedData.qwen.educationVoices) {
+        const oldVoices = loadedData.qwen.educationVoices;
+        this.settings.templateVoices.classroom = [
+          oldVoices.host || "Ethan",
+          oldVoices.curious || "Cherry",
+          oldVoices.critical || "Serena"
+        ];
+      } else if (oldMode === "podcast" && loadedData.qwen.podcastVoices) {
+        const oldVoices = loadedData.qwen.podcastVoices;
+        this.settings.templateVoices.duo = [
+          oldVoices.host1 || "Moon",
+          oldVoices.host2 || "Maia"
+        ];
+      }
+      await this.saveData(this.settings);
     }
   }
   async saveSettings() {

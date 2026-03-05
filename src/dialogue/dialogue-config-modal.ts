@@ -2,7 +2,7 @@
 
 import { App, Modal } from 'obsidian';
 import { DialogueTemplate, DialogueStyle } from './types';
-import { DialogueTemplateManager } from './dialogue-template-manager';
+import { DialogueTemplateManager, TemplateVoiceConfig } from './dialogue-template-manager';
 
 export interface DialogueConfig {
   template: DialogueTemplate;
@@ -18,10 +18,11 @@ export class DialogueConfigModal extends Modal {
   constructor(
     app: App,
     defaultTemplate: string,
-    defaultStyle: DialogueStyle
+    defaultStyle: DialogueStyle,
+    voiceConfig?: TemplateVoiceConfig
   ) {
     super(app);
-    this.templateManager = new DialogueTemplateManager();
+    this.templateManager = new DialogueTemplateManager(voiceConfig);
     this.selectedTemplate = defaultTemplate;
     this.selectedStyle = defaultStyle;
   }
