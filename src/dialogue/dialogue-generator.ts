@@ -1,7 +1,8 @@
 // src/dialogue/dialogue-generator.ts
 
 import { requestUrl } from 'obsidian';
-import { DialogueLength, ProgressCallback, DialogueMode } from './types';
+import { DialogueLength, ProgressCallback, DialogueMode, DialogueTemplate, DialogueStyle } from './types';
+import { DialogueTemplateManager } from './dialogue-template-manager';
 
 export class DialogueGenerator {
   private apiKey: string;
@@ -194,13 +195,61 @@ ${content}
   }
 
   /**
+   * 构建模板特定的 Prompt
+   */
+  private buildPrompt(
+    content: string,
+    wordCount: number,
+    template: DialogueTemplate,
+    style: DialogueStyle
+  ): string {
+    const stylePrompts = {
+      formal: '语言规范、逻辑严密，使用专业术语，适合学术、技术文档',
+      casual: '语言通俗、比喻生动，适当使用口语，适合科普、生活类内容',
+      humorous: '加入幽默元素、俏皮话，使用类比和段子，适合娱乐、趣味内容'
+    };
+
+    const styleDesc = stylePrompts[style];
+
+    // Build role descriptions
+    const roleDescriptions = template.roles.map(role =>
+      `- [${role.name}]：${role.personality}`
+    ).join('\n');
+
+    const roleFormat = template.roles.map(role =>
+      `[${role.name}]: 发言内容`
+    ).join('\n');
+
+    let prompt = `你是一个内容转换专家。请将以下文档转换成${template.name}形式：\n\n`;
+    prompt += `**角色设定**：\n${roleDescriptions}\n\n`;
+    prompt += `**对话风格**：${styleDesc}\n\n`;
+    prompt += `**对话长度**：根据原文档字数自动调整\n`;
+    prompt += `- 1000字以内：5-8轮对话（约5分钟）\n`;
+    prompt += `- 1000-3000字：10-15轮对话（约15分钟）\n`;
+    prompt += `- 3000字以上：20-30轮对话（约30分钟）\n\n`;
+    prompt += `**输出格式**：\n严格使用以下格式，每行一个角色发言：\n${roleFormat}\n\n`;
+    prompt += `**原文档内容**：\n${content}\n\n`;
+    prompt += `**文档字数**：${wordCount} 字\n\n`;
+    prompt += `请开始生成对话：`;
+
+    return prompt;
+  }
+
+  /**
    * 生成对话脚本
    */
   async generate(
     content: string,
     wordCount: number,
-    onProgress?: ProgressCallback
+    onProgress?: ProgressCallback,
+    template?: DialogueTemplate,
+    style?: DialogueStyle
   ): Promise<string> {
+    // Use defaults if not provided
+    const templateManager = new DialogueTemplateManager();
+    const actualTemplate = template || templateManager.getDefaultTemplate();
+    const actualStyle = style || 'casual';
+
     // 计算对话长度和超时时间
     const length = this.calculateLength(wordCount);
     const timeout = this.calculateTimeout(wordCount);
@@ -214,8 +263,7 @@ ${content}
     });
 
     // 构建 Prompt
-    const systemPrompt = this.buildSystemPrompt();
-    const userPrompt = this.buildUserPrompt(content, length);
+    const prompt = this.buildPrompt(content, wordCount, actualTemplate, actualStyle);
 
     // 报告进度：生成对话
     onProgress?.({
@@ -228,8 +276,7 @@ ${content}
     const requestBody = {
       model: this.model,
       messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
+        { role: 'user', content: prompt }
       ],
       temperature: 0.8,
       max_tokens: 4000,
