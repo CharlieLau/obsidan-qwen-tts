@@ -7,6 +7,7 @@ import { EngineStatus } from '../tts/engines/base';
 import TTSPlugin from '../main';
 import { DialogueProgressModal } from '../dialogue/dialogue-progress-modal';
 import { DialogueOptionsModal } from '../dialogue/dialogue-options-modal';
+import { DialogueConfigModal } from '../dialogue/dialogue-config-modal';
 import { AudioMerger } from '../dialogue/audio-merger';
 import { SpeedController } from '../utils/speed-controller';
 import { TextSegment } from '../utils/language-detector';
@@ -454,6 +455,25 @@ export class TTSController {
         return;
       }
 
+      // Show configuration modal
+      const configModal = new DialogueConfigModal(
+        this.plugin.app,
+        this.plugin.settings.dialogueTemplate,
+        this.plugin.settings.dialogueStyle
+      );
+      configModal.open();
+
+      const config = await configModal.waitForConfig();
+      if (!config) {
+        // User cancelled
+        return;
+      }
+
+      // Save selected template and style
+      this.plugin.settings.dialogueTemplate = config.template.id;
+      this.plugin.settings.dialogueStyle = config.style;
+      await this.plugin.saveSettings();
+
       // 获取当前文件路径
       const file = view.file;
       if (!file) {
@@ -514,7 +534,9 @@ export class TTSController {
                 throw new Error('用户取消了生成');
               }
               progressModal.updateProgress(progress);
-            }
+            },
+            config.template,
+            config.style
           );
 
           // 再次检查是否已取消
