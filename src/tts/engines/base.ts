@@ -12,6 +12,7 @@ export interface EngineConfig {
   secretId?: string;
   secretKey?: string;
   speechRate?: number;
+  playbackSpeed?: number; // Playback speed control (0.5-2.0)
   voice?: string; // For Qwen TTS voice selection
   model?: string; // For Qwen TTS model selection
   onProgress?: (current: number, total: number) => void; // Progress callback

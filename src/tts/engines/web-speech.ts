@@ -22,7 +22,10 @@ export class WebSpeechEngine extends BaseTTSEngine {
       try {
         this.utterance = new SpeechSynthesisUtterance(text);
         this.utterance.lang = language;
-        this.utterance.rate = this.config.speechRate || 1.0;
+
+        // Apply playback speed from config (prioritize playbackSpeed, fallback to speechRate)
+        const speed = this.config.playbackSpeed || this.config.speechRate || 1.0;
+        this.utterance.rate = speed;
 
         this.utterance.onstart = () => {
           this.status = 'playing';

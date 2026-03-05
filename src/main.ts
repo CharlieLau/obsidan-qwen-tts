@@ -30,6 +30,7 @@ export default class TTSPlugin extends Plugin {
     this.engineManager = new TTSEngineManager({
       type: this.settings.currentEngine,
       speechRate: this.settings.speechRate,
+      playbackSpeed: this.settings.playbackSpeed,
       onProgress: (current, total) => this.controller.updateProgress(current, total),
       ...this.getEngineConfig()
     });
@@ -41,6 +42,7 @@ export default class TTSPlugin extends Plugin {
     await this.engineManager.initialize({
       type: this.settings.currentEngine,
       speechRate: this.settings.speechRate,
+      playbackSpeed: this.settings.playbackSpeed,
       onProgress: (current, total) => this.controller.updateProgress(current, total),
       ...this.getEngineConfig()
     });
@@ -176,6 +178,7 @@ export default class TTSPlugin extends Plugin {
     await this.engineManager.initialize({
       type: this.settings.currentEngine,
       speechRate: this.settings.speechRate,
+      playbackSpeed: this.settings.playbackSpeed,
       onProgress: (current, total) => this.controller.updateProgress(current, total),
       ...this.getEngineConfig()
     });

@@ -238,6 +238,9 @@ export class TTSController {
         if (audio) {
           this.speedController.applyToAudio(audio);
         }
+      } else {
+        // 更新引擎管理器的速度设置
+        this.engineManager.updatePlaybackSpeed(newSpeed);
       }
     };
 

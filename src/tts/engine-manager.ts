@@ -108,4 +108,13 @@ export class TTSEngineManager {
     // 恢复原音色
     this.config.voice = originalVoice;
   }
+
+  /**
+   * 更新播放速度
+   */
+  updatePlaybackSpeed(speed: number): void {
+    if (this.config) {
+      this.config.playbackSpeed = speed;
+    }
+  }
 }

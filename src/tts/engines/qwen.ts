@@ -42,6 +42,11 @@ export class QwenEngine extends BaseTTSEngine {
         const voice = this.config.voice || 'Cherry'; // Default to Cherry
         const languageType = language === 'zh-CN' ? 'Chinese' : 'English';
 
+        // Calculate speech_rate from playback speed
+        // Speed range: 0.5-2.0, Qwen speech_rate range: -500 to 500
+        const speed = this.config.playbackSpeed || this.config.speechRate || 1.0;
+        const speechRate = Math.round((speed - 1.0) * 500);
+
         // Prepare request body for configured model
         const requestBody = {
           model: this.model,
@@ -49,6 +54,11 @@ export class QwenEngine extends BaseTTSEngine {
             text: text,
             voice: voice,
             language_type: languageType
+          },
+          parameters: {
+            format: 'mp3',
+            sample_rate: 16000,
+            speech_rate: speechRate
           }
         };
 
