@@ -41,3 +41,19 @@ export interface DialogueGenerationProgress {
 }
 
 export type ProgressCallback = (progress: DialogueGenerationProgress) => void;
+
+export interface RoleDefinition {
+  name: string;
+  voice: string;
+  personality: string;
+}
+
+export interface DialogueTemplate {
+  id: string;
+  name: string;
+  icon: string;
+  roles: RoleDefinition[];
+  description: string;
+}
+
+export type DialogueStyle = 'formal' | 'casual' | 'humorous';
