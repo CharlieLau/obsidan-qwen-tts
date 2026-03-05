@@ -39,6 +39,8 @@ export interface TTSSettings {
   };
   speechRate: number;
   playbackSpeed: number;
+  dialogueTemplate: string;
+  dialogueStyle: 'formal' | 'casual' | 'humorous';
 }
 
 export const DEFAULT_SETTINGS: TTSSettings = {
@@ -85,7 +87,9 @@ export const DEFAULT_SETTINGS: TTSSettings = {
     apiKey: ''
   },
   speechRate: 1.0,
-  playbackSpeed: 1.0
+  playbackSpeed: 1.0,
+  dialogueTemplate: 'classroom',
+  dialogueStyle: 'casual'
 };
 
 export class TTSSettingTab extends PluginSettingTab {
