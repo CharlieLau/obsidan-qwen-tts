@@ -78,40 +78,6 @@ export class TTSController {
     this.dialogueButton.title = '对话模式';
     this.dialogueButton.onclick = () => this.handleDialogue(view);
 
-    // 创建对话模式选择器
-    const dialogueModeSelector = document.createElement('select');
-    dialogueModeSelector.addClass('tts-dialogue-mode-select');
-    dialogueModeSelector.title = '对话模式';
-
-    const educationOption = document.createElement('option');
-    educationOption.value = 'education';
-    educationOption.textContent = '📚 教育';
-
-    const podcastOption = document.createElement('option');
-    podcastOption.value = 'podcast';
-    podcastOption.textContent = '🎙️ 播客';
-
-    dialogueModeSelector.appendChild(educationOption);
-    dialogueModeSelector.appendChild(podcastOption);
-    dialogueModeSelector.value = this.plugin.settings.qwen.dialogueMode;
-
-    dialogueModeSelector.onchange = async () => {
-      const mode = dialogueModeSelector.value as 'education' | 'podcast';
-      this.plugin.settings.qwen.dialogueMode = mode;
-      await this.plugin.saveSettings();
-
-      // 更新 Generator 和 Parser 的模式
-      this.plugin.dialogueGenerator.setMode(mode);
-      this.plugin.dialogueParser.setMode(mode);
-      this.plugin.dialogueParser.updateVoiceMapping(
-        this.plugin.settings.qwen.educationVoices,
-        this.plugin.settings.qwen.podcastVoices
-      );
-
-      // 更新按钮提示
-      this.dialogueButton.title = mode === 'education' ? '对话模式（教育）' : '对话模式（播客）';
-    };
-
     // 播放控制按钮组
     mainControls.appendChild(this.startButton);
     mainControls.appendChild(this.pauseButton);
@@ -256,9 +222,8 @@ export class TTSController {
     separator4.addClass('tts-separator');
     mainControls.appendChild(separator4);
 
-    // 对话模式区
+    // 对话模式按钮
     mainControls.appendChild(this.dialogueButton);
-    mainControls.appendChild(dialogueModeSelector);
 
     // 状态文本（放在最右侧）
     mainControls.appendChild(this.statusText);

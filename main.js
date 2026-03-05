@@ -26,7 +26,7 @@ __export(main_exports, {
   default: () => TTSPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian9 = require("obsidian");
+var import_obsidian10 = require("obsidian");
 
 // src/settings.ts
 var import_obsidian = require("obsidian");
@@ -78,7 +78,10 @@ var DEFAULT_SETTINGS = {
   openai: {
     apiKey: ""
   },
-  speechRate: 1
+  speechRate: 1,
+  playbackSpeed: 1,
+  dialogueTemplate: "classroom",
+  dialogueStyle: "casual"
 };
 var TTSSettingTab = class extends import_obsidian.PluginSettingTab {
   constructor(app, plugin) {
@@ -288,7 +291,8 @@ var WebSpeechEngine = class extends BaseTTSEngine {
       try {
         this.utterance = new SpeechSynthesisUtterance(text);
         this.utterance.lang = language;
-        this.utterance.rate = this.config.speechRate || 1;
+        const speed = this.config.playbackSpeed || this.config.speechRate || 1;
+        this.utterance.rate = speed;
         this.utterance.onstart = () => {
           this.status = "playing";
         };
@@ -6830,12 +6834,19 @@ var QwenEngine = class extends BaseTTSEngine {
         this.cleanup();
         const voice = this.config.voice || "Cherry";
         const languageType = language === "zh-CN" ? "Chinese" : "English";
+        const speed = this.config.playbackSpeed || this.config.speechRate || 1;
+        const speechRate = Math.round((speed - 1) * 500);
         const requestBody = {
           model: this.model,
           input: {
             text,
             voice,
             language_type: languageType
+          },
+          parameters: {
+            format: "mp3",
+            sample_rate: 16e3,
+            speech_rate: speechRate
           }
         };
         const response = await (0, import_obsidian2.requestUrl)({
@@ -6948,6 +6959,7 @@ var TTSEngineManager = class {
     this.currentSegmentIndex = 0;
     this.segments = [];
     this.isPlaying = false;
+    this.currentSegments = [];
     const webSpeechEngine = new WebSpeechEngine(config);
     this.engines.set("web-speech", webSpeechEngine);
     const openaiEngine = new OpenAIEngine(config);
@@ -6969,8 +6981,9 @@ var TTSEngineManager = class {
     }
   }
   async speakSegments(segments) {
-    this.segments = segments;
+    this.currentSegments = segments;
     this.currentSegmentIndex = 0;
+    this.segments = segments;
     this.isPlaying = true;
     try {
       await this.playNextSegment();
@@ -7017,10 +7030,27 @@ var TTSEngineManager = class {
     await this.currentEngine.speak(text, language);
     this.config.voice = originalVoice;
   }
+  /**
+   * 更新播放速度
+   */
+  updatePlaybackSpeed(speed) {
+    if (this.config) {
+      this.config.playbackSpeed = speed;
+    }
+  }
+  async seekToSegment(index) {
+    if (index < 0 || index >= this.currentSegments.length) {
+      throw new Error(`Invalid segment index: ${index}`);
+    }
+    this.stop();
+    this.currentSegmentIndex = index;
+    const remainingSegments = this.currentSegments.slice(index);
+    await this.speakSegments(remainingSegments);
+  }
 };
 
 // src/ui/controller.ts
-var import_obsidian7 = require("obsidian");
+var import_obsidian8 = require("obsidian");
 
 // src/utils/language-detector.ts
 function detectLanguage(text) {
@@ -7190,8 +7220,216 @@ var DialogueOptionsModal = class extends import_obsidian5.Modal {
   }
 };
 
-// src/dialogue/audio-merger.ts
+// src/dialogue/dialogue-config-modal.ts
 var import_obsidian6 = require("obsidian");
+
+// src/dialogue/dialogue-template-manager.ts
+var DialogueTemplateManager = class {
+  constructor() {
+    this.templates = /* @__PURE__ */ new Map();
+    this.initializeTemplates();
+  }
+  initializeTemplates() {
+    this.templates.set("solo", {
+      id: "solo",
+      name: "\u5355\u4EBA\u8BB2\u89E3",
+      icon: "\u{1F4D6}",
+      description: "\u9002\u5408\u77E5\u8BC6\u4F20\u6388\u3001\u6559\u7A0B",
+      roles: [
+        {
+          name: "\u8BB2\u89E3\u8005",
+          voice: "Ethan",
+          personality: "\u6E05\u6670\u3001\u6709\u6761\u7406\u5730\u8BB2\u89E3\u5185\u5BB9"
+        }
+      ]
+    });
+    this.templates.set("duo", {
+      id: "duo",
+      name: "\u53CC\u4EBA\u5BF9\u8BDD",
+      icon: "\u{1F4AC}",
+      description: "\u9002\u5408\u8F7B\u677E\u8BA8\u8BBA\u3001\u64AD\u5BA2",
+      roles: [
+        {
+          name: "\u5BF9\u8BDD\u8005A",
+          voice: "Cherry",
+          personality: "\u6D3B\u6CFC\u3001\u597D\u5947"
+        },
+        {
+          name: "\u5BF9\u8BDD\u8005B",
+          voice: "Serena",
+          personality: "\u7406\u6027\u3001\u6E29\u548C"
+        }
+      ]
+    });
+    this.templates.set("classroom", {
+      id: "classroom",
+      name: "\u4E09\u4EBA\u8BFE\u5802",
+      icon: "\u{1F4DA}",
+      description: "\u9002\u5408\u6DF1\u5EA6\u5B66\u4E60\u3001\u8BFE\u5802",
+      roles: [
+        {
+          name: "\u8BB2\u5E08",
+          voice: "Ethan",
+          personality: "\u7ECF\u9A8C\u4E30\u5BCC\uFF0C\u8BB2\u89E3\u6E05\u6670"
+        },
+        {
+          name: "\u597D\u5947\u5B66\u751F",
+          voice: "Cherry",
+          personality: "\u5145\u6EE1\u597D\u5947\uFF0C\u63D0\u51FA\u57FA\u7840\u95EE\u9898"
+        },
+        {
+          name: "\u6279\u5224\u5B66\u751F",
+          voice: "Serena",
+          personality: "\u5584\u4E8E\u601D\u8003\uFF0C\u63D0\u51FA\u6DF1\u5EA6\u95EE\u9898"
+        }
+      ]
+    });
+    this.templates.set("debate", {
+      id: "debate",
+      name: "\u53CC\u4EBA\u8FA9\u8BBA",
+      icon: "\u2694\uFE0F",
+      description: "\u9002\u5408\u89C2\u70B9\u78B0\u649E\u3001\u8FA9\u8BBA",
+      roles: [
+        {
+          name: "\u6B63\u65B9",
+          voice: "Ethan",
+          personality: "\u575A\u5B9A\u3001\u6709\u529B\u5730\u9610\u8FF0\u89C2\u70B9"
+        },
+        {
+          name: "\u53CD\u65B9",
+          voice: "Kai",
+          personality: "\u6279\u5224\u6027\u601D\u8003\uFF0C\u63D0\u51FA\u53CD\u9A73"
+        }
+      ]
+    });
+    this.templates.set("interview", {
+      id: "interview",
+      name: "\u8BBF\u8C08\u6A21\u5F0F",
+      icon: "\u{1F399}\uFE0F",
+      description: "\u9002\u5408\u4EBA\u7269\u91C7\u8BBF\u3001\u8BDD\u9898\u8BBF\u8C08",
+      roles: [
+        {
+          name: "\u4E3B\u6301\u4EBA",
+          voice: "Cherry",
+          personality: "\u5F15\u5BFC\u8BDD\u9898\uFF0C\u63D0\u51FA\u5173\u952E\u95EE\u9898"
+        },
+        {
+          name: "\u5609\u5BBE",
+          voice: "Ethan",
+          personality: "\u5206\u4EAB\u89C1\u89E3\uFF0C\u56DE\u7B54\u95EE\u9898"
+        }
+      ]
+    });
+  }
+  getTemplates() {
+    return Array.from(this.templates.values());
+  }
+  getTemplate(id) {
+    return this.templates.get(id);
+  }
+  getDefaultTemplate() {
+    return this.templates.get("classroom");
+  }
+};
+
+// src/dialogue/dialogue-config-modal.ts
+var DialogueConfigModal = class extends import_obsidian6.Modal {
+  constructor(app, defaultTemplate, defaultStyle) {
+    super(app);
+    this.resolvePromise = null;
+    this.templateManager = new DialogueTemplateManager();
+    this.selectedTemplate = defaultTemplate;
+    this.selectedStyle = defaultStyle;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass("dialogue-config-modal");
+    contentEl.createEl("h2", { text: "\u5BF9\u8BDD\u6A21\u5F0F\u914D\u7F6E" });
+    const templateSection = contentEl.createDiv("dialogue-config-section");
+    templateSection.createEl("h3", { text: "\u9009\u62E9\u6A21\u677F" });
+    const templateGrid = templateSection.createDiv("template-grid");
+    const templates = this.templateManager.getTemplates();
+    templates.forEach((template) => {
+      const templateCard = templateGrid.createDiv("template-card");
+      if (template.id === this.selectedTemplate) {
+        templateCard.addClass("selected");
+      }
+      const icon = templateCard.createDiv("template-icon");
+      icon.textContent = template.icon;
+      const name = templateCard.createDiv("template-name");
+      name.textContent = template.name;
+      const desc = templateCard.createDiv("template-desc");
+      desc.textContent = template.description;
+      templateCard.onclick = () => {
+        templateGrid.querySelectorAll(".template-card").forEach((card) => {
+          card.removeClass("selected");
+        });
+        templateCard.addClass("selected");
+        this.selectedTemplate = template.id;
+      };
+    });
+    const styleSection = contentEl.createDiv("dialogue-config-section");
+    styleSection.createEl("h3", { text: "\u5BF9\u8BDD\u98CE\u683C" });
+    const styleGrid = styleSection.createDiv("style-grid");
+    const styles = [
+      { id: "formal", name: "\u6B63\u5F0F", desc: "\u8BED\u8A00\u89C4\u8303\u3001\u903B\u8F91\u4E25\u5BC6" },
+      { id: "casual", name: "\u8F7B\u677E", desc: "\u8BED\u8A00\u901A\u4FD7\u3001\u6BD4\u55BB\u751F\u52A8" },
+      { id: "humorous", name: "\u5E7D\u9ED8", desc: "\u52A0\u5165\u5E7D\u9ED8\u5143\u7D20\u3001\u4FCF\u76AE\u8BDD" }
+    ];
+    styles.forEach((style) => {
+      const styleCard = styleGrid.createDiv("style-card");
+      if (style.id === this.selectedStyle) {
+        styleCard.addClass("selected");
+      }
+      const name = styleCard.createDiv("style-name");
+      name.textContent = style.name;
+      const desc = styleCard.createDiv("style-desc");
+      desc.textContent = style.desc;
+      styleCard.onclick = () => {
+        styleGrid.querySelectorAll(".style-card").forEach((card) => {
+          card.removeClass("selected");
+        });
+        styleCard.addClass("selected");
+        this.selectedStyle = style.id;
+      };
+    });
+    const buttonContainer = contentEl.createDiv("dialogue-config-buttons");
+    const cancelButton = buttonContainer.createEl("button", { text: "\u53D6\u6D88" });
+    cancelButton.onclick = () => {
+      var _a2;
+      (_a2 = this.resolvePromise) == null ? void 0 : _a2.call(this, null);
+      this.close();
+    };
+    const confirmButton = buttonContainer.createEl("button", {
+      text: "\u5F00\u59CB\u751F\u6210",
+      cls: "mod-cta"
+    });
+    confirmButton.onclick = () => {
+      var _a2;
+      const template = this.templateManager.getTemplate(this.selectedTemplate);
+      if (template) {
+        (_a2 = this.resolvePromise) == null ? void 0 : _a2.call(this, {
+          template,
+          style: this.selectedStyle
+        });
+      }
+      this.close();
+    };
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+  async waitForConfig() {
+    return new Promise((resolve) => {
+      this.resolvePromise = resolve;
+    });
+  }
+};
+
+// src/dialogue/audio-merger.ts
+var import_obsidian7 = require("obsidian");
 var AudioMerger = class {
   constructor(app, apiKey, model = "qwen3-tts-instruct-flash") {
     this.apiEndpoint = "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation";
@@ -7251,7 +7489,7 @@ var AudioMerger = class {
         // 使用 WAV 格式,支持直接二进制拼接
       }
     };
-    const response = await (0, import_obsidian6.requestUrl)({
+    const response = await (0, import_obsidian7.requestUrl)({
       url: this.apiEndpoint,
       method: "POST",
       headers: {
@@ -7273,7 +7511,7 @@ var AudioMerger = class {
    * 下载音频数据
    */
   async downloadAudio(url) {
-    const response = await (0, import_obsidian6.requestUrl)({
+    const response = await (0, import_obsidian7.requestUrl)({
       url,
       method: "GET"
     });
@@ -7379,6 +7617,37 @@ var AudioMerger = class {
   }
 };
 
+// src/utils/speed-controller.ts
+var SpeedController = class {
+  constructor(initialSpeed = 1) {
+    this.currentSpeed = 1;
+    this.speedOptions = [0.5, 0.75, 1, 1.25, 1.5, 2];
+    this.currentSpeed = initialSpeed;
+  }
+  setSpeed(speed) {
+    if (!this.speedOptions.includes(speed)) {
+      throw new Error(`Invalid speed: ${speed}. Must be one of ${this.speedOptions.join(", ")}`);
+    }
+    this.currentSpeed = speed;
+  }
+  getSpeed() {
+    return this.currentSpeed;
+  }
+  getSpeedOptions() {
+    return [...this.speedOptions];
+  }
+  applyToAudio(audio) {
+    audio.playbackRate = this.currentSpeed;
+  }
+  applyToSpeech(utterance) {
+    utterance.rate = this.currentSpeed;
+  }
+  // Convert to Qwen TTS speech_rate parameter (-500 to 500)
+  toQwenSpeechRate() {
+    return Math.round((this.currentSpeed - 1) * 500);
+  }
+};
+
 // src/ui/controller.ts
 var TTSController = class {
   constructor(engineManager, plugin) {
@@ -7386,9 +7655,11 @@ var TTSController = class {
     this.currentAudio = null;
     this.isDialogueMode = false;
     this.isGeneratingDialogue = false;
+    this.currentSegments = null;
     this.engineManager = engineManager;
     this.contentParser = new ContentParser();
     this.plugin = plugin;
+    this.speedController = new SpeedController(plugin.settings.playbackSpeed);
   }
   renderControlBar(view) {
     this.removeControlBar();
@@ -7414,30 +7685,6 @@ var TTSController = class {
     this.dialogueButton.textContent = "\u{1F4AC}";
     this.dialogueButton.title = "\u5BF9\u8BDD\u6A21\u5F0F";
     this.dialogueButton.onclick = () => this.handleDialogue(view);
-    const dialogueModeSelector = document.createElement("select");
-    dialogueModeSelector.addClass("tts-dialogue-mode-select");
-    dialogueModeSelector.title = "\u5BF9\u8BDD\u6A21\u5F0F";
-    const educationOption = document.createElement("option");
-    educationOption.value = "education";
-    educationOption.textContent = "\u{1F4DA} \u6559\u80B2";
-    const podcastOption = document.createElement("option");
-    podcastOption.value = "podcast";
-    podcastOption.textContent = "\u{1F399}\uFE0F \u64AD\u5BA2";
-    dialogueModeSelector.appendChild(educationOption);
-    dialogueModeSelector.appendChild(podcastOption);
-    dialogueModeSelector.value = this.plugin.settings.qwen.dialogueMode;
-    dialogueModeSelector.onchange = async () => {
-      const mode = dialogueModeSelector.value;
-      this.plugin.settings.qwen.dialogueMode = mode;
-      await this.plugin.saveSettings();
-      this.plugin.dialogueGenerator.setMode(mode);
-      this.plugin.dialogueParser.setMode(mode);
-      this.plugin.dialogueParser.updateVoiceMapping(
-        this.plugin.settings.qwen.educationVoices,
-        this.plugin.settings.qwen.podcastVoices
-      );
-      this.dialogueButton.title = mode === "education" ? "\u5BF9\u8BDD\u6A21\u5F0F\uFF08\u6559\u80B2\uFF09" : "\u5BF9\u8BDD\u6A21\u5F0F\uFF08\u64AD\u5BA2\uFF09";
-    };
     mainControls.appendChild(this.startButton);
     mainControls.appendChild(this.pauseButton);
     mainControls.appendChild(this.stopButton);
@@ -7496,8 +7743,42 @@ var TTSController = class {
     const separator3 = document.createElement("div");
     separator3.addClass("tts-separator");
     mainControls.appendChild(separator3);
+    const speedSelector = document.createElement("div");
+    speedSelector.addClass("tts-speed-selector");
+    const speedIcon = document.createElement("span");
+    speedIcon.addClass("tts-speed-icon");
+    speedIcon.textContent = "\u{1F3AC}";
+    this.speedSelect = document.createElement("select");
+    this.speedSelect.addClass("tts-speed-select");
+    const speeds = this.speedController.getSpeedOptions();
+    speeds.forEach((speed) => {
+      const option = document.createElement("option");
+      option.value = speed.toString();
+      option.textContent = `${speed}x`;
+      this.speedSelect.appendChild(option);
+    });
+    this.speedSelect.value = this.plugin.settings.playbackSpeed.toString();
+    this.speedSelect.onchange = async () => {
+      const newSpeed = parseFloat(this.speedSelect.value);
+      this.speedController.setSpeed(newSpeed);
+      this.plugin.settings.playbackSpeed = newSpeed;
+      await this.plugin.saveSettings();
+      if (this.isDialogueMode) {
+        const audio = this.plugin.multiVoicePlayer.getCurrentAudio();
+        if (audio) {
+          this.speedController.applyToAudio(audio);
+        }
+      } else {
+        this.engineManager.updatePlaybackSpeed(newSpeed);
+      }
+    };
+    speedSelector.appendChild(speedIcon);
+    speedSelector.appendChild(this.speedSelect);
+    mainControls.appendChild(speedSelector);
+    const separator4 = document.createElement("div");
+    separator4.addClass("tts-separator");
+    mainControls.appendChild(separator4);
     mainControls.appendChild(this.dialogueButton);
-    mainControls.appendChild(dialogueModeSelector);
     mainControls.appendChild(this.statusText);
     this.controlBar.appendChild(mainControls);
     const contentEl = view.containerEl.querySelector(".view-content");
@@ -7510,19 +7791,20 @@ var TTSController = class {
       const editor = view.editor;
       const content = editor.getValue();
       if (!content || content.trim().length === 0) {
-        new import_obsidian7.Notice("\u7B14\u8BB0\u5185\u5BB9\u4E3A\u7A7A");
+        new import_obsidian8.Notice("\u7B14\u8BB0\u5185\u5BB9\u4E3A\u7A7A");
         return;
       }
       const parsed = this.contentParser.parse(content);
       if (parsed.segments.length === 0) {
-        new import_obsidian7.Notice("\u6CA1\u6709\u53EF\u6717\u8BFB\u7684\u5185\u5BB9");
+        new import_obsidian8.Notice("\u6CA1\u6709\u53EF\u6717\u8BFB\u7684\u5185\u5BB9");
         return;
       }
+      this.currentSegments = parsed.segments;
       this.updateUIState("playing");
       await this.engineManager.speakSegments(parsed.segments);
       this.updateUIState("idle");
     } catch (error) {
-      new import_obsidian7.Notice(`\u64AD\u653E\u5931\u8D25: ${error.message}`);
+      new import_obsidian8.Notice(`\u64AD\u653E\u5931\u8D25: ${error.message}`);
       this.updateUIState("idle");
       this.showStatus("\u64AD\u653E\u5931\u8D25", true);
     }
@@ -7579,25 +7861,31 @@ var TTSController = class {
     }, 3e3);
   }
   handleProgressClick(e) {
-    if (!this.isDialogueMode) {
-      return;
-    }
     const progressBar = e.currentTarget;
     const rect = progressBar.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const percentage = clickX / rect.width;
-    const status = this.plugin.multiVoicePlayer.getStatus();
-    if (status === "idle") {
-      return;
-    }
-    const timeText = this.progressTime.textContent || "0:00 / 0:00";
-    const match = timeText.match(/\d+:\d+ \/ (\d+):(\d+)/);
-    if (match) {
-      const totalMinutes = parseInt(match[1]);
-      const totalSeconds = parseInt(match[2]);
-      const totalDuration = totalMinutes * 60 + totalSeconds;
-      const targetTime = totalDuration * percentage;
-      this.plugin.multiVoicePlayer.seekToTime(targetTime);
+    if (this.isDialogueMode) {
+      const status = this.plugin.multiVoicePlayer.getStatus();
+      if (status === "idle") {
+        return;
+      }
+      const timeText = this.progressTime.textContent || "0:00 / 0:00";
+      const match = timeText.match(/\d+:\d+ \/ (\d+):(\d+)/);
+      if (match) {
+        const totalMinutes = parseInt(match[1]);
+        const totalSeconds = parseInt(match[2]);
+        const totalDuration = totalMinutes * 60 + totalSeconds;
+        const targetTime = totalDuration * percentage;
+        this.plugin.multiVoicePlayer.seekToTime(targetTime);
+      }
+    } else {
+      const status = this.engineManager.getStatus();
+      if (status === "idle" || !this.currentSegments) {
+        return;
+      }
+      const targetIndex = Math.floor(this.currentSegments.length * percentage);
+      this.engineManager.seekToSegment(targetIndex);
     }
   }
   updateProgress(current, total) {
@@ -7638,12 +7926,25 @@ var TTSController = class {
   async handleDialogue(view) {
     try {
       if (this.isGeneratingDialogue) {
-        new import_obsidian7.Notice("\u5BF9\u8BDD\u751F\u6210\u4E2D\uFF0C\u8BF7\u7A0D\u5019...");
+        new import_obsidian8.Notice("\u5BF9\u8BDD\u751F\u6210\u4E2D\uFF0C\u8BF7\u7A0D\u5019...");
         return;
       }
+      const configModal = new DialogueConfigModal(
+        this.plugin.app,
+        this.plugin.settings.dialogueTemplate,
+        this.plugin.settings.dialogueStyle
+      );
+      configModal.open();
+      const config = await configModal.waitForConfig();
+      if (!config) {
+        return;
+      }
+      this.plugin.settings.dialogueTemplate = config.template.id;
+      this.plugin.settings.dialogueStyle = config.style;
+      await this.plugin.saveSettings();
       const file = view.file;
       if (!file) {
-        new import_obsidian7.Notice("\u65E0\u6CD5\u83B7\u53D6\u5F53\u524D\u6587\u4EF6");
+        new import_obsidian8.Notice("\u65E0\u6CD5\u83B7\u53D6\u5F53\u524D\u6587\u4EF6");
         return;
       }
       const filePath = file.path;
@@ -7659,7 +7960,7 @@ var TTSController = class {
           shouldGenerate = false;
           dialogueScript = await this.plugin.dialogueFileManager.loadDialogue(filePath);
           if (!dialogueScript) {
-            new import_obsidian7.Notice("\u65E0\u6CD5\u8BFB\u53D6\u5BF9\u8BDD\u6587\u4EF6");
+            new import_obsidian8.Notice("\u65E0\u6CD5\u8BFB\u53D6\u5BF9\u8BDD\u6587\u4EF6");
             return;
           }
         }
@@ -7682,7 +7983,9 @@ var TTSController = class {
                 throw new Error("\u7528\u6237\u53D6\u6D88\u4E86\u751F\u6210");
               }
               progressModal.updateProgress(progress);
-            }
+            },
+            config.template,
+            config.style
           );
           if (cancelled || progressModal.isCancelRequested()) {
             progressModal.close();
@@ -7743,7 +8046,7 @@ var TTSController = class {
             });
             setTimeout(() => {
               progressModal.close();
-              new import_obsidian7.Notice(`\u5BF9\u8BDD\u5DF2\u4FDD\u5B58\u5230: ${savedPath}
+              new import_obsidian8.Notice(`\u5BF9\u8BDD\u5DF2\u4FDD\u5B58\u5230: ${savedPath}
 \u97F3\u9891\u5DF2\u7F13\u5B58`);
             }, 1e3);
           }
@@ -7751,7 +8054,7 @@ var TTSController = class {
           progressModal.close();
           this.isGeneratingDialogue = false;
           if (error.message === "\u7528\u6237\u53D6\u6D88\u4E86\u751F\u6210") {
-            new import_obsidian7.Notice("\u5DF2\u53D6\u6D88\u751F\u6210");
+            new import_obsidian8.Notice("\u5DF2\u53D6\u6D88\u751F\u6210");
             return;
           }
           throw error;
@@ -7760,12 +8063,12 @@ var TTSController = class {
         }
       }
       if (!dialogueScript) {
-        new import_obsidian7.Notice("\u65E0\u6CD5\u83B7\u53D6\u5BF9\u8BDD\u811A\u672C");
+        new import_obsidian8.Notice("\u65E0\u6CD5\u83B7\u53D6\u5BF9\u8BDD\u811A\u672C");
         return;
       }
       const dialogueLines = this.plugin.dialogueParser.parse(dialogueScript);
       if (dialogueLines.length === 0) {
-        new import_obsidian7.Notice("\u5BF9\u8BDD\u5185\u5BB9\u4E3A\u7A7A");
+        new import_obsidian8.Notice("\u5BF9\u8BDD\u5185\u5BB9\u4E3A\u7A7A");
         return;
       }
       const audioMerger = new AudioMerger(
@@ -7797,9 +8100,9 @@ var TTSController = class {
       await this.plugin.multiVoicePlayer.play();
       this.isDialogueMode = false;
       this.updateUIState("idle");
-      new import_obsidian7.Notice("\u5BF9\u8BDD\u64AD\u653E\u5B8C\u6210");
+      new import_obsidian8.Notice("\u5BF9\u8BDD\u64AD\u653E\u5B8C\u6210");
     } catch (error) {
-      new import_obsidian7.Notice(`\u5BF9\u8BDD\u6A21\u5F0F\u5931\u8D25: ${error.message}`);
+      new import_obsidian8.Notice(`\u5BF9\u8BDD\u6A21\u5F0F\u5931\u8D25: ${error.message}`);
       this.updateUIState("idle");
       console.error("Dialogue error:", error);
     }
@@ -7807,7 +8110,7 @@ var TTSController = class {
 };
 
 // src/dialogue/dialogue-generator.ts
-var import_obsidian8 = require("obsidian");
+var import_obsidian9 = require("obsidian");
 var DialogueGenerator = class {
   constructor(apiKey, model = "qwen3.5-plus", mode = "education") {
     this.apiEndpoint = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
@@ -7987,9 +8290,62 @@ ${content}
     return Math.min(baseTimeout + additionalTimeout, maxTimeout);
   }
   /**
+   * 构建模板特定的 Prompt
+   */
+  buildPrompt(content, wordCount, template, style) {
+    const stylePrompts = {
+      formal: "\u8BED\u8A00\u89C4\u8303\u3001\u903B\u8F91\u4E25\u5BC6\uFF0C\u4F7F\u7528\u4E13\u4E1A\u672F\u8BED\uFF0C\u9002\u5408\u5B66\u672F\u3001\u6280\u672F\u6587\u6863",
+      casual: "\u8BED\u8A00\u901A\u4FD7\u3001\u6BD4\u55BB\u751F\u52A8\uFF0C\u9002\u5F53\u4F7F\u7528\u53E3\u8BED\uFF0C\u9002\u5408\u79D1\u666E\u3001\u751F\u6D3B\u7C7B\u5185\u5BB9",
+      humorous: "\u52A0\u5165\u5E7D\u9ED8\u5143\u7D20\u3001\u4FCF\u76AE\u8BDD\uFF0C\u4F7F\u7528\u7C7B\u6BD4\u548C\u6BB5\u5B50\uFF0C\u9002\u5408\u5A31\u4E50\u3001\u8DA3\u5473\u5185\u5BB9"
+    };
+    const styleDesc = stylePrompts[style];
+    const roleDescriptions = template.roles.map(
+      (role) => `- [${role.name}]\uFF1A${role.personality}`
+    ).join("\n");
+    const roleFormat = template.roles.map(
+      (role) => `[${role.name}]: \u53D1\u8A00\u5185\u5BB9`
+    ).join("\n");
+    let prompt = `\u4F60\u662F\u4E00\u4E2A\u5185\u5BB9\u8F6C\u6362\u4E13\u5BB6\u3002\u8BF7\u5C06\u4EE5\u4E0B\u6587\u6863\u8F6C\u6362\u6210${template.name}\u5F62\u5F0F\uFF1A
+
+`;
+    prompt += `**\u89D2\u8272\u8BBE\u5B9A**\uFF1A
+${roleDescriptions}
+
+`;
+    prompt += `**\u5BF9\u8BDD\u98CE\u683C**\uFF1A${styleDesc}
+
+`;
+    prompt += `**\u5BF9\u8BDD\u957F\u5EA6**\uFF1A\u6839\u636E\u539F\u6587\u6863\u5B57\u6570\u81EA\u52A8\u8C03\u6574
+`;
+    prompt += `- 1000\u5B57\u4EE5\u5185\uFF1A5-8\u8F6E\u5BF9\u8BDD\uFF08\u7EA65\u5206\u949F\uFF09
+`;
+    prompt += `- 1000-3000\u5B57\uFF1A10-15\u8F6E\u5BF9\u8BDD\uFF08\u7EA615\u5206\u949F\uFF09
+`;
+    prompt += `- 3000\u5B57\u4EE5\u4E0A\uFF1A20-30\u8F6E\u5BF9\u8BDD\uFF08\u7EA630\u5206\u949F\uFF09
+
+`;
+    prompt += `**\u8F93\u51FA\u683C\u5F0F**\uFF1A
+\u4E25\u683C\u4F7F\u7528\u4EE5\u4E0B\u683C\u5F0F\uFF0C\u6BCF\u884C\u4E00\u4E2A\u89D2\u8272\u53D1\u8A00\uFF1A
+${roleFormat}
+
+`;
+    prompt += `**\u539F\u6587\u6863\u5185\u5BB9**\uFF1A
+${content}
+
+`;
+    prompt += `**\u6587\u6863\u5B57\u6570**\uFF1A${wordCount} \u5B57
+
+`;
+    prompt += `\u8BF7\u5F00\u59CB\u751F\u6210\u5BF9\u8BDD\uFF1A`;
+    return prompt;
+  }
+  /**
    * 生成对话脚本
    */
-  async generate(content, wordCount, onProgress) {
+  async generate(content, wordCount, onProgress, template, style) {
+    const templateManager = new DialogueTemplateManager();
+    const actualTemplate = template || templateManager.getDefaultTemplate();
+    const actualStyle = style || "casual";
     const length = this.calculateLength(wordCount);
     const timeout = this.calculateTimeout(wordCount);
     const timeoutSeconds = Math.round(timeout / 1e3);
@@ -7998,8 +8354,7 @@ ${content}
       message: "\u6B63\u5728\u5206\u6790\u6587\u6863\u5185\u5BB9...",
       percentage: 10
     });
-    const systemPrompt = this.buildSystemPrompt();
-    const userPrompt = this.buildUserPrompt(content, length);
+    const prompt = this.buildPrompt(content, wordCount, actualTemplate, actualStyle);
     onProgress == null ? void 0 : onProgress({
       stage: "generating",
       message: `\u6B63\u5728\u751F\u6210\u5BF9\u8BDD\u811A\u672C\uFF08\u7EA6${length.estimatedMinutes}\u5206\u949F\u5185\u5BB9\uFF0C\u6700\u957F\u7B49\u5F85${timeoutSeconds}\u79D2\uFF09...`,
@@ -8008,8 +8363,7 @@ ${content}
     const requestBody = {
       model: this.model,
       messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
+        { role: "user", content: prompt }
       ],
       temperature: 0.8,
       max_tokens: 4e3,
@@ -8018,7 +8372,7 @@ ${content}
     let response;
     try {
       response = await Promise.race([
-        (0, import_obsidian8.requestUrl)({
+        (0, import_obsidian9.requestUrl)({
           url: this.apiEndpoint,
           method: "POST",
           headers: {
@@ -8265,7 +8619,7 @@ ${script}
 
 // src/dialogue/multi-voice-player.ts
 var MultiVoicePlayer = class {
-  constructor(engineManager) {
+  constructor(engineManager, getPlaybackSpeed) {
     this.currentIndex = 0;
     this.dialogueLines = [];
     this.isPlaying = false;
@@ -8273,6 +8627,7 @@ var MultiVoicePlayer = class {
     this.isPaused = false;
     this.mergedAudioUrl = null;
     this.engineManager = engineManager;
+    this.getPlaybackSpeed = getPlaybackSpeed;
   }
   /**
    * 设置进度更新回调
@@ -8308,6 +8663,7 @@ var MultiVoicePlayer = class {
   async playMergedAudio() {
     return new Promise((resolve, reject) => {
       this.currentAudio = new Audio(this.mergedAudioUrl);
+      this.currentAudio.playbackRate = this.getPlaybackSpeed();
       this.currentAudio.ontimeupdate = () => {
         if (this.currentAudio && this.onProgressUpdate) {
           const current = this.currentAudio.currentTime;
@@ -8324,8 +8680,18 @@ var MultiVoicePlayer = class {
       };
       this.currentAudio.onerror = (event) => {
         this.isPlaying = false;
+        let errorDetails = "Unknown error";
+        let audioSrc = "";
+        if (typeof event !== "string" && event.target) {
+          const audio = event.target;
+          audioSrc = audio.src;
+          if (audio.error) {
+            errorDetails = `Code: ${audio.error.code}, Message: ${audio.error.message}`;
+          }
+        }
+        console.error("Audio playback error:", errorDetails, "Audio src:", audioSrc);
         this.cleanup();
-        reject(new Error(`\u97F3\u9891\u64AD\u653E\u9519\u8BEF: ${event}`));
+        reject(new Error(`\u97F3\u9891\u64AD\u653E\u9519\u8BEF: ${errorDetails}`));
       };
       this.currentAudio.play().catch(reject);
     });
@@ -8412,6 +8778,12 @@ var MultiVoicePlayer = class {
     }
   }
   /**
+   * 获取当前音频元素
+   */
+  getCurrentAudio() {
+    return this.currentAudio;
+  }
+  /**
    * 获取播放进度
    */
   getProgress() {
@@ -8462,13 +8834,14 @@ var MultiVoicePlayer = class {
 };
 
 // src/main.ts
-var TTSPlugin = class extends import_obsidian9.Plugin {
+var TTSPlugin = class extends import_obsidian10.Plugin {
   async onload() {
     await this.loadSettings();
     this.controller = new TTSController(this.engineManager, this);
     this.engineManager = new TTSEngineManager({
       type: this.settings.currentEngine,
       speechRate: this.settings.speechRate,
+      playbackSpeed: this.settings.playbackSpeed,
       onProgress: (current, total) => this.controller.updateProgress(current, total),
       ...this.getEngineConfig()
     });
@@ -8476,6 +8849,7 @@ var TTSPlugin = class extends import_obsidian9.Plugin {
     await this.engineManager.initialize({
       type: this.settings.currentEngine,
       speechRate: this.settings.speechRate,
+      playbackSpeed: this.settings.playbackSpeed,
       onProgress: (current, total) => this.controller.updateProgress(current, total),
       ...this.getEngineConfig()
     });
@@ -8490,7 +8864,10 @@ var TTSPlugin = class extends import_obsidian9.Plugin {
       this.settings.qwen.podcastVoices
     );
     this.dialogueFileManager = new DialogueFileManager(this.app);
-    this.multiVoicePlayer = new MultiVoicePlayer(this.engineManager);
+    this.multiVoicePlayer = new MultiVoicePlayer(
+      this.engineManager,
+      () => this.settings.playbackSpeed
+    );
     this.addSettingTab(new TTSSettingTab(this.app, this));
     this.registerEvent(
       this.app.workspace.on("active-leaf-change", () => {
@@ -8502,7 +8879,7 @@ var TTSPlugin = class extends import_obsidian9.Plugin {
       id: "tts-start",
       name: "\u5F00\u59CB\u6717\u8BFB",
       checkCallback: (checking) => {
-        const view = this.app.workspace.getActiveViewOfType(import_obsidian9.MarkdownView);
+        const view = this.app.workspace.getActiveViewOfType(import_obsidian10.MarkdownView);
         if (view) {
           if (!checking) {
             const startButton = view.containerEl.querySelector(".tts-control-bar button");
@@ -8525,7 +8902,7 @@ var TTSPlugin = class extends import_obsidian9.Plugin {
     }
   }
   onActiveLeafChange() {
-    const view = this.app.workspace.getActiveViewOfType(import_obsidian9.MarkdownView);
+    const view = this.app.workspace.getActiveViewOfType(import_obsidian10.MarkdownView);
     let wasStopped = false;
     if (this.engineManager) {
       const status = this.engineManager.getStatus();
@@ -8542,7 +8919,7 @@ var TTSPlugin = class extends import_obsidian9.Plugin {
       }
     }
     if (wasStopped) {
-      new import_obsidian9.Notice("\u5DF2\u81EA\u52A8\u505C\u6B62\u64AD\u653E");
+      new import_obsidian10.Notice("\u5DF2\u81EA\u52A8\u505C\u6B62\u64AD\u653E");
     }
     if (view) {
       this.controller.renderControlBar(view);
@@ -8574,6 +8951,7 @@ var TTSPlugin = class extends import_obsidian9.Plugin {
     await this.engineManager.initialize({
       type: this.settings.currentEngine,
       speechRate: this.settings.speechRate,
+      playbackSpeed: this.settings.playbackSpeed,
       onProgress: (current, total) => this.controller.updateProgress(current, total),
       ...this.getEngineConfig()
     });
