@@ -46,13 +46,14 @@ export class ContentParser {
     processed = processed.replace(/\$\$[\s\S]*?\$\$/g, '');
     processed = processed.replace(/\$.*?\$/g, '');
 
-    // 4. 处理标题
-    processed = processed.replace(/^######\s+(.+)$/gm, '六级标题：$1');
-    processed = processed.replace(/^#####\s+(.+)$/gm, '五级标题：$1');
-    processed = processed.replace(/^####\s+(.+)$/gm, '四级标题：$1');
-    processed = processed.replace(/^###\s+(.+)$/gm, '三级标题：$1');
-    processed = processed.replace(/^##\s+(.+)$/gm, '二级标题：$1');
-    processed = processed.replace(/^#\s+(.+)$/gm, '一级标题：$1');
+    // 4. 处理标题 - 添加停顿而不是标记
+    // 通过句号创造自然停顿，避免冗余的"一级标题"等标记
+    processed = processed.replace(/^######\s+(.+)$/gm, '$1。');
+    processed = processed.replace(/^#####\s+(.+)$/gm, '$1。');
+    processed = processed.replace(/^####\s+(.+)$/gm, '$1。');
+    processed = processed.replace(/^###\s+(.+)$/gm, '$1。');
+    processed = processed.replace(/^##\s+(.+)$/gm, '$1。');
+    processed = processed.replace(/^#\s+(.+)$/gm, '$1。');
 
     // 5. 处理链接 - 只保留显示文本
     processed = processed.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
