@@ -1,6 +1,6 @@
 {
   "name": "obsidian-voice-notes",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Voice Notes - AI Dialogue: Transform your notes into engaging AI-powered dialogues with multi-voice TTS",
   "main": "main.js",
   "scripts": {

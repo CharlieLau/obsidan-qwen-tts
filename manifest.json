@@ -1,7 +1,7 @@
 {
   "id": "ai-dialogue-tts",
   "name": "Voice Notes - AI Dialogue",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "minAppVersion": "0.15.0",
   "description": "Transform your notes into engaging AI-powered dialogues with multi-voice TTS. NotebookLM-style learning experience.",
   "author": "CharlieLau",
